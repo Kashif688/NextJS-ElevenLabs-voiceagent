@@ -7,11 +7,11 @@ import { switchAgent } from "@/actions/agent.actions";
 const agents = [
   {
     id: "default", // We'll map this to process.env.AGENT_ID on the server if needed, or just leave it empty to trigger fallback
-    name: "Default Agent",
+    name: "Consultant (Default)",
   },
   {
     id: "agent_8401kz69arjce8daj1gtr08vdn8q",
-    name: "New Agent",
+    name: "Sales agent",
   }
 ];
 
