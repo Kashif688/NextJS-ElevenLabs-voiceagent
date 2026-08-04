@@ -1,8 +1,9 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import AgentSwitcher from "./AgentSwitcher";
 
-export default function Topbar() {
+export default function Topbar({ currentAgentId = "" }: { currentAgentId?: string }) {
   const pathname = usePathname();
 
   let pageTitle = "Dashboard";
@@ -18,6 +19,8 @@ export default function Topbar() {
       </div>
 
       <div className="flex items-center gap-5">
+        <AgentSwitcher currentAgentId={currentAgentId} />
+        
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-50 text-emerald-500 border border-emerald-500/20 rounded-full text-sm font-bold shadow-sm">
           <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_0_0_rgba(16,185,129,0.7)]"></span>
           <span>ElevenLabs Agent Online</span>

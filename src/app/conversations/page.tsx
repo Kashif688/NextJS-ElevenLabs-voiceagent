@@ -3,6 +3,7 @@ import connectDB from "@/lib/mongodb";
 import CallLog from "@/models/CallLog";
 import Link from "next/link";
 import { PlayCircle } from "lucide-react";
+import { getCurrentAgentId } from "@/actions/agent.actions";
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +29,8 @@ function formatDate(unixSecs: number | undefined) {
 }
 
 export default async function ConversationsPage() {
-  const data = await getConversations(50);
+  const currentAgentId = await getCurrentAgentId() || "";
+  const data = await getConversations(50, currentAgentId);
   const conversations = data?.conversations || [];
 
   await connectDB();

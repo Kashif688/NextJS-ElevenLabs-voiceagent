@@ -2,15 +2,28 @@
 
 import { getAgentDetails, updateAgentDetails } from "@/lib/elevenlabs";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
+
+export async function getCurrentAgentId() {
+  const cookieStore = await cookies();
+  const selectedAgentId = cookieStore.get("selected_agent_id")?.value;
+  return selectedAgentId || process.env.AGENT_ID;
+}
+
+export async function switchAgent(agentId: string) {
+  const cookieStore = await cookies();
+  cookieStore.set("selected_agent_id", agentId, { path: "/" });
+  revalidatePath("/");
+}
 
 export async function fetchAgentDetails() {
-  const agentId = process.env.AGENT_ID;
+  const agentId = await getCurrentAgentId();
   if (!agentId) return null;
   return await getAgentDetails(agentId);
 }
 
 export async function saveAgentDetails(formData: FormData) {
-  const agentId = process.env.AGENT_ID;
+  const agentId = await getCurrentAgentId();
   if (!agentId) throw new Error("AGENT_ID not set in environment");
 
   const name = formData.get("name") as string;

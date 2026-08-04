@@ -5,6 +5,7 @@ import Lead from "@/models/Lead";
 import { inngest } from "@/inngest/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getCurrentAgentId } from "@/actions/agent.actions";
 
 export async function createLead(formData: FormData) {
   await connectDB();
@@ -32,10 +33,12 @@ export async function createLead(formData: FormData) {
   });
 
   if (callType === "auto") {
+    const currentAgentId = await getCurrentAgentId();
     await inngest.send({
       name: "calls/initiate",
       data: {
         leadId: lead._id.toString(),
+        agentId: currentAgentId,
       },
     });
   }
@@ -50,10 +53,12 @@ export async function triggerManualCall(leadId: string) {
   if (!lead) throw new Error("Lead not found");
 
   if (!["initiating", "in_progress", "ringing"].includes(lead.callStatus)) {
+    const currentAgentId = await getCurrentAgentId();
     await inngest.send({
       name: "calls/initiate",
       data: {
         leadId: lead._id.toString(),
+        agentId: currentAgentId,
       },
     });
   }

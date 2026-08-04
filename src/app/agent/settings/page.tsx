@@ -1,4 +1,4 @@
-import { fetchAgentDetails, saveAgentDetails } from "@/actions/agent.actions";
+import { fetchAgentDetails, saveAgentDetails, getCurrentAgentId } from "@/actions/agent.actions";
 import { CheckCircle2, Mic, Settings2 } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
@@ -20,7 +20,7 @@ export default async function AgentSettingsPage() {
     );
   }
 
-  const agentId = process.env.AGENT_ID || 'Not Configured';
+  const agentId = await getCurrentAgentId() || 'Not Configured';
   const agentConfig = agentDetails.conversation_config?.agent || {};
   const ttsConfig = agentDetails.conversation_config?.tts || {};
   const prompt = agentConfig.prompt?.prompt || '';

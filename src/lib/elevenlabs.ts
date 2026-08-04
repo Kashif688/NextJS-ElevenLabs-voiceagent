@@ -11,10 +11,10 @@ const client = axios.create({
   },
 });
 
-export async function triggerOutboundCall(phoneNumber: string, dynamicVariables: Record<string, string> = {}) {
+export async function triggerOutboundCall(phoneNumber: string, dynamicVariables: Record<string, string> = {}, agentId?: string) {
   try {
     const response = await client.post(`/v1/convai/twilio/outbound-call`, {
-      agent_id: AGENT_ID,
+      agent_id: agentId || AGENT_ID,
       agent_phone_number_id: process.env.AGENT_PHONE_NUMBER_ID,
       to_number: phoneNumber,
       dynamic_variables: dynamicVariables,
@@ -66,9 +66,9 @@ export async function updateAgentDetails(agentId: string, payload: any) {
   }
 }
 
-export async function getConversations(limit: number = 50) {
+export async function getConversations(limit: number = 50, agentId?: string) {
   try {
-    const response = await client.get(`/v1/convai/conversations?agent_id=${AGENT_ID}&page_size=${limit}`);
+    const response = await client.get(`/v1/convai/conversations?agent_id=${agentId || AGENT_ID}&page_size=${limit}`);
     return response.data;
   } catch (error: any) {
     console.error('Error fetching conversations:', error.response?.data || error.message);

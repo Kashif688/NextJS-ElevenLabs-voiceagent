@@ -7,7 +7,7 @@ import { triggerOutboundCall } from "../lib/elevenlabs";
 export const initiateOutboundCall = inngest.createFunction(
   { id: "initiate-outbound-call", triggers: [{ event: "calls/initiate" }] },
   async ({ event, step }) => {
-    const { leadId } = event.data;
+    const { leadId, agentId } = event.data as { leadId: string; agentId?: string };
 
     await connectDB();
     
@@ -46,7 +46,7 @@ export const initiateOutboundCall = inngest.createFunction(
         context: lead.context || "",
       };
 
-      const response = await triggerOutboundCall(lead.phoneNumber, dynamicVariables);
+      const response = await triggerOutboundCall(lead.phoneNumber, dynamicVariables, agentId);
 
       if (response.success && response.conversation_id) {
         await CallLog.updateOne(

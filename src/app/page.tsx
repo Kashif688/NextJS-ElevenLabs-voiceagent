@@ -1,12 +1,13 @@
 import { getDashboardStats } from "@/actions/lead.actions";
 import Link from "next/link";
 import { Users, PhoneCall, PhoneForwarded, PhoneMissed, Plus } from "lucide-react";
+import { getCurrentAgentId } from "@/actions/agent.actions";
 
 export const dynamic = 'force-dynamic';
 
 export default async function Dashboard() {
   const { stats, recentLeads } = await getDashboardStats();
-  const agentId = process.env.AGENT_ID || "Not set";
+  const agentId = await getCurrentAgentId() || "Not set";
 
   return (
     <div className="space-y-8">
