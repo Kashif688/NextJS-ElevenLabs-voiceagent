@@ -149,7 +149,10 @@ export default async function BatchDetailPage({ params }: { params: Promise<{ id
 
     // Level 2: Conversation Outcome
     const outcome = extractCallOutcome(item, log) || "no_info_provided";
-    outcomesCount[outcome] = (outcomesCount[outcome] || 0) + 1;
+    
+    if (deliveryKey === "completed") {
+      outcomesCount[outcome] = (outcomesCount[outcome] || 0) + 1;
+    }
 
     const duration = item.metadata?.call_duration_secs ?? item.call_duration_secs ?? item.duration_secs ?? item.duration ?? 0;
     totalDurationSecs += duration;
@@ -194,7 +197,7 @@ export default async function BatchDetailPage({ params }: { params: Promise<{ id
       label: config.label,
       count,
       color: config.color,
-      percentage: (count / totalCalls) * 100,
+      percentage: answeredCalls > 0 ? (count / answeredCalls) * 100 : 0,
     };
   });
 

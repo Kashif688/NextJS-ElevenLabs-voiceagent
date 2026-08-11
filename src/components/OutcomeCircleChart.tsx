@@ -143,7 +143,7 @@ export default function OutcomeCircleChart({
               className="text-[0.65rem] font-extrabold uppercase tracking-wider text-slate-400 max-w-[120px] truncate leading-snug mt-0.5"
               title={activeItem ? activeItem.label : (activeTab === "status" ? "TOTAL CALLS" : "ANSWERED CALLS")}
             >
-              {activeItem ? activeItem.label : (activeTab === "status" ? "TOTAL CALLS" : "TRACKED CALLS")}
+              {activeItem ? activeItem.label : (activeTab === "status" ? "TOTAL CALLS" : "ANSWERED CALLS")}
             </span>
             {activeItem && (
               <span 
@@ -165,7 +165,7 @@ export default function OutcomeCircleChart({
               {activeTab === "status" ? "ElevenLabs Delivery Status Breakdown" : "Conversation Outcome Breakdown (LLM Data Collection)"}
             </span>
             <span className="text-xs font-bold text-slate-500 font-mono">
-              {total} Total Tracked
+              {activeTab === "status" ? `${total} Total Tracked` : `${total} Answered Calls`}
             </span>
           </div>
 
