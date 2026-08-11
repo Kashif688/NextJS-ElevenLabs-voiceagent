@@ -18,7 +18,7 @@ async function main() {
 
   const targetPhones = new Set<string>();
   
-  for (const record of records) {
+  for (const record of records as any[]) {
     let phone = record.phone_number;
     if (phone && phone.startsWith("'")) {
       phone = phone.substring(1);

@@ -73,7 +73,7 @@ export async function reanalyzeBatchAction(batchId: string, limit?: number, skip
     if (skipProcessed) {
       const existingLogs = await CallLog.find({
         elevenlabsConversationId: { $in: conversationIds },
-        callOutcome: { $nin: [null, undefined, ""] }
+        callOutcome: { $nin: [null, ""] }
       }).select("elevenlabsConversationId").lean();
 
       const processedSet = new Set(existingLogs.map((l: any) => l.elevenlabsConversationId));
