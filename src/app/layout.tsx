@@ -5,7 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import Topbar from "@/components/Topbar";
 import { Toaster } from "react-hot-toast";
 import ConvaiWidget from "@/components/ConvaiWidget";
-import { getCurrentAgentId, fetchAgentDetails } from "@/actions/agent.actions";
+import { getCurrentAgentId, fetchAgentDetails, fetchAllAgents } from "@/actions/agent.actions";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,6 +22,8 @@ export default async function RootLayout({
   const currentAgentId = await getCurrentAgentId() || "";
   const agentDetails = await fetchAgentDetails();
   const currentAgentName = agentDetails?.name || "Emma-American";
+  const allAgentsRaw = await fetchAllAgents();
+  const allAgents = allAgentsRaw?.agents || [];
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -31,7 +33,7 @@ export default async function RootLayout({
 
         {/* Main Content Wrapper */}
         <div className="ml-[260px] flex-1 flex flex-col min-w-0 bg-slate-50 min-h-screen">
-          <Topbar currentAgentId={currentAgentId} currentAgentName={currentAgentName} />
+          <Topbar agents={allAgents} currentAgentId={currentAgentId} currentAgentName={currentAgentName} />
           
           <main className="p-8 max-w-[1300px] w-full mx-auto">
             {children}

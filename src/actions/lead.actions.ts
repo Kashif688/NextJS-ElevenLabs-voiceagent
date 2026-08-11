@@ -5,7 +5,7 @@ import Lead from "@/models/Lead";
 import { inngest } from "@/inngest/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getCurrentAgentId } from "@/actions/agent.actions";
+import { getCurrentAgentId, getSelectedPhoneNumber } from "@/actions/agent.actions";
 
 export async function createLead(formData: FormData) {
   await connectDB();
@@ -34,11 +34,13 @@ export async function createLead(formData: FormData) {
 
   if (callType === "auto") {
     const currentAgentId = await getCurrentAgentId();
+    const agentPhoneNumberId = await getSelectedPhoneNumber();
     await inngest.send({
       name: "calls/initiate",
       data: {
         leadId: lead._id.toString(),
         agentId: currentAgentId,
+        agentPhoneNumberId,
       },
     });
   }
@@ -48,24 +50,33 @@ export async function createLead(formData: FormData) {
 }
 
 export async function triggerManualCall(leadId: string) {
-  await connectDB();
-  const lead = await Lead.findById(leadId);
-  if (!lead) throw new Error("Lead not found");
+  try {
+    await connectDB();
+    const lead = await Lead.findById(leadId);
+    
+    if (!lead) {
+      return { success: false, error: "Lead not found" };
+    }
 
-  if (!["initiating", "in_progress", "ringing"].includes(lead.callStatus)) {
-    const currentAgentId = await getCurrentAgentId();
+    if (["initiating", "in_progress", "ringing"].includes(lead.callStatus)) {
+      return { success: false, error: "Call is already active" };
+    }
+
+    const agentId = await getCurrentAgentId();
+    const agentPhoneNumberId = await getSelectedPhoneNumber();
+
     await inngest.send({
       name: "calls/initiate",
-      data: {
-        leadId: lead._id.toString(),
-        agentId: currentAgentId,
-      },
+      data: { leadId: lead._id.toString(), agentId, agentPhoneNumberId },
     });
+
+    revalidatePath("/leads");
+    revalidatePath(`/leads/${leadId}`);
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error triggering manual call:", error);
+    return { success: false, error: error.message };
   }
-  
-  revalidatePath(`/leads/${leadId}`);
-  revalidatePath("/leads");
-  revalidatePath("/");
 }
 
 export async function getDashboardStats() {

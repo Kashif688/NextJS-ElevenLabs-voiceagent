@@ -11,11 +11,16 @@ const client = axios.create({
   },
 });
 
-export async function triggerOutboundCall(phoneNumber: string, dynamicVariables: Record<string, string> = {}, agentId?: string) {
+export async function triggerOutboundCall(
+  phoneNumber: string, 
+  dynamicVariables: Record<string, string> = {}, 
+  agentId?: string,
+  agentPhoneNumberId?: string
+) {
   try {
     const response = await client.post(`/v1/convai/twilio/outbound-call`, {
       agent_id: agentId || AGENT_ID,
-      agent_phone_number_id: process.env.AGENT_PHONE_NUMBER_ID,
+      agent_phone_number_id: agentPhoneNumberId || process.env.AGENT_PHONE_NUMBER_ID,
       to_number: phoneNumber,
       dynamic_variables: dynamicVariables,
     });
@@ -54,6 +59,16 @@ export async function getAgentDetails(agentId: string) {
   }
 }
 
+export async function getAgents() {
+  try {
+    const response = await client.get(`/v1/convai/agents`);
+    return response.data;
+  } catch (error: any) {
+    console.error('Error fetching agents:', error.response?.data || error.message);
+    return null;
+  }
+}
+
 export async function updateAgentDetails(agentId: string, payload: any) {
   try {
     // We typically use PATCH for updating agent config, depending on ElevenLabs API specs.
@@ -76,9 +91,14 @@ export async function getConversations(limit: number = 50, agentId?: string) {
   }
 }
 
-export async function getBatchCalls() {
+export async function getBatchCalls(agentId?: string) {
   try {
-    const response = await client.get('/v1/convai/batch-calling/workspace');
+    const targetAgentId = agentId || AGENT_ID;
+    const url = targetAgentId 
+      ? `/v1/convai/batch-calling/workspace?agent_id=${targetAgentId}`
+      : '/v1/convai/batch-calling/workspace';
+    
+    const response = await client.get(url);
     return response.data;
   } catch (error: any) {
     console.error('Error fetching batch calls:', error.response?.data || error.message);
@@ -124,5 +144,25 @@ export async function submitBatchCall(payload: {
       success: false,
       error: error.response?.data?.detail || error.response?.data || error.message,
     };
+  }
+}
+
+export async function getPhoneNumbers() {
+  try {
+    const response = await client.get('/v1/convai/phone-numbers');
+    return response.data?.phone_numbers || response.data || [];
+  } catch (error: any) {
+    console.error('Error fetching phone numbers:', error.response?.data || error.message);
+    return [];
+  }
+}
+
+export async function runConversationAnalysis(conversationId: string) {
+  try {
+    const response = await client.post(`/v1/convai/conversations/${conversationId}/analysis/run`);
+    return response.data;
+  } catch (error: any) {
+    console.error(`Error running analysis for ${conversationId}:`, error.response?.data || error.message);
+    return null;
   }
 }

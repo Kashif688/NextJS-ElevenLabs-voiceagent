@@ -1,10 +1,13 @@
-import { fetchAgentDetails, saveAgentDetails, getCurrentAgentId } from "@/actions/agent.actions";
-import { CheckCircle2, Mic, Settings2 } from "lucide-react";
+import { fetchAgentDetails, saveAgentDetails, getCurrentAgentId, fetchPhoneNumbers, getSelectedPhoneNumber } from "@/actions/agent.actions";
+import { CheckCircle2, Mic, Settings2, PhoneCall } from "lucide-react";
+import PhoneNumberSelector from "@/components/PhoneNumberSelector";
 
 export const dynamic = 'force-dynamic';
 
 export default async function AgentSettingsPage() {
   const agentDetails = await fetchAgentDetails();
+  const phoneNumbers = await fetchPhoneNumbers();
+  const currentPhoneNumberId = await getSelectedPhoneNumber();
 
   if (!agentDetails) {
     return (
@@ -66,6 +69,15 @@ export default async function AgentSettingsPage() {
             </div>
 
             <div className="space-y-2">
+              <label htmlFor="phoneNumber" className="block text-[0.85rem] font-bold text-slate-700 flex items-center gap-2">
+                <PhoneCall size={14} className="text-indigo-600" />
+                Active Outbound Phone Number
+              </label>
+              <PhoneNumberSelector phoneNumbers={phoneNumbers} currentPhoneNumberId={currentPhoneNumberId} />
+              <p className="text-[0.75rem] text-slate-500 font-medium mt-1">This number will be used for manual and batch outbound calls.</p>
+            </div>
+
+            <div className="space-y-2">
               <label htmlFor="llm" className="block text-[0.85rem] font-bold text-slate-700">AI Language Model (LLM)</label>
               <select id="llm" name="llm" defaultValue={llm} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-[0.95rem] text-slate-900 font-medium bg-white appearance-none">
                 <option value="gpt-5.6-sol">GPT-5.6 Sol (Default Configured)</option>
@@ -109,7 +121,7 @@ export default async function AgentSettingsPage() {
 
               <div className="space-y-2">
                 <label htmlFor="temperature" className="block text-[0.85rem] font-bold text-slate-700">Creativity / Temperature</label>
-                <input type="number" step="0.05" min="0" max="1" id="temperature" name="temperature" defaultValue={temperature} className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-[0.95rem] text-slate-900 font-medium bg-white" />
+                <input type="number" step="any" min="0" max="1" id="temperature" name="temperature" defaultValue={temperature} className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-[0.95rem] text-slate-900 font-medium bg-white" />
                 <p className="text-[0.75rem] text-slate-500 font-medium">Range: 0 to 1 (Default: 0.55)</p>
               </div>
             </div>

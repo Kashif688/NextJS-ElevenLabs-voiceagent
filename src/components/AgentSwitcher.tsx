@@ -3,26 +3,12 @@
 import { useTransition, useState } from "react";
 import { switchAgent } from "@/actions/agent.actions";
 
-// Default agents configuration
-const agents = [
-  {
-    id: "agent_6801kzdq7fxnfawssffegcnczw95",
-    name: "Emma-American",
-  },
-  {
-    id: "agent_9801kyps3fksfbev9d9ncxkdzyrq",
-    name: "Consultant (Default)",
-  },
-  {
-    id: "agent_8401kz69arjce8daj1gtr08vdn8q",
-    name: "Sales agent",
-  }
-];
-
 export default function AgentSwitcher({
+  agents = [],
   currentAgentId,
   initialAgentName,
 }: {
+  agents?: any[];
   currentAgentId: string;
   initialAgentName?: string;
 }) {
@@ -30,7 +16,7 @@ export default function AgentSwitcher({
   const [isOpen, setIsOpen] = useState(false);
 
   // Determine current active agent name
-  const matchedAgent = agents.find(a => a.id === currentAgentId);
+  const matchedAgent = agents?.find(a => (a.agent_id || a.id) === currentAgentId);
   const displayName = isPending
     ? "Switching..."
     : (matchedAgent?.name || initialAgentName || "Emma-American");
@@ -60,19 +46,22 @@ export default function AgentSwitcher({
         <>
           <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)}></div>
           <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-lg z-20 py-1 overflow-hidden">
-            {agents.map((agent) => (
-              <button
-                key={agent.id}
-                onClick={() => handleSwitch(agent.id)}
-                className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                  currentAgentId === agent.id
-                    ? "bg-indigo-50 text-indigo-700 font-bold"
-                    : "text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                {agent.name}
-              </button>
-            ))}
+            {agents.map((agent) => {
+              const id = agent.agent_id || agent.id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => handleSwitch(id)}
+                  className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                    currentAgentId === id
+                      ? "bg-indigo-50 text-indigo-700 font-bold"
+                      : "text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  {agent.name}
+                </button>
+              );
+            })}
           </div>
         </>
       )}

@@ -1,6 +1,6 @@
 "use server";
 
-import { getAgentDetails, updateAgentDetails } from "@/lib/elevenlabs";
+import { getAgentDetails, updateAgentDetails, getAgents, getPhoneNumbers } from "@/lib/elevenlabs";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 
@@ -16,10 +16,30 @@ export async function switchAgent(agentId: string) {
   revalidatePath("/");
 }
 
+export async function fetchPhoneNumbers() {
+  return await getPhoneNumbers();
+}
+
+export async function getSelectedPhoneNumber() {
+  const cookieStore = await cookies();
+  const selectedPhoneNumberId = cookieStore.get("selected_phone_number_id")?.value;
+  return selectedPhoneNumberId || process.env.AGENT_PHONE_NUMBER_ID || "";
+}
+
+export async function switchPhoneNumber(phoneNumberId: string) {
+  const cookieStore = await cookies();
+  cookieStore.set("selected_phone_number_id", phoneNumberId, { path: "/" });
+  revalidatePath("/");
+}
+
 export async function fetchAgentDetails() {
   const agentId = await getCurrentAgentId();
   if (!agentId) return null;
   return await getAgentDetails(agentId);
+}
+
+export async function fetchAllAgents() {
+  return await getAgents();
 }
 
 export async function saveAgentDetails(formData: FormData) {

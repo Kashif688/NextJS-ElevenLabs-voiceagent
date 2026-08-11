@@ -3,13 +3,17 @@ import { clearDatabaseAction } from "@/actions/admin.actions";
 import CleanDbClientButton from "@/components/CleanDbClientButton";
 import Link from "next/link";
 import { Users, PhoneCall, PhoneForwarded, PhoneMissed, Plus } from "lucide-react";
-import { getCurrentAgentId } from "@/actions/agent.actions";
+import { getCurrentAgentId, getSelectedPhoneNumber, fetchPhoneNumbers } from "@/actions/agent.actions";
 
 export const dynamic = 'force-dynamic';
 
 export default async function Dashboard() {
   const { stats, recentLeads } = await getDashboardStats();
   const agentId = await getCurrentAgentId() || "Not set";
+  const agentPhoneNumberId = await getSelectedPhoneNumber();
+  const phoneNumbers = await fetchPhoneNumbers();
+  const matchedPhone = phoneNumbers?.find((p: any) => p.phone_number_id === agentPhoneNumberId);
+  const displayPhoneNumber = matchedPhone?.phone_number || agentPhoneNumberId;
 
   return (
     <div className="space-y-8">
@@ -68,10 +72,15 @@ export default async function Dashboard() {
             Experience real-time interactive voice conversation with your configured ElevenLabs Agent right inside the browser. Click the widget icon floating at the bottom right corner of your screen to launch a live test call.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col items-end gap-2">
           <span className="text-[0.85rem] font-semibold text-indigo-200 bg-white/10 border border-white/15 px-4 py-2.5 rounded-xl font-mono">
             Agent ID: {agentId}
           </span>
+          {displayPhoneNumber && (
+            <span className="text-[0.85rem] font-semibold text-emerald-200 bg-emerald-900/40 border border-emerald-400/20 px-4 py-2.5 rounded-xl font-mono flex items-center gap-2">
+              <PhoneCall size={14} /> {displayPhoneNumber}
+            </span>
+          )}
         </div>
       </div>
 
