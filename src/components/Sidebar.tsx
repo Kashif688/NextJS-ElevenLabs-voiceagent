@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, UserPlus, Settings, MessageSquare } from "lucide-react";
+import { LayoutDashboard, Users, UserPlus, Settings, MessageSquare, Layers } from "lucide-react";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -12,6 +12,7 @@ export default function Sidebar() {
     { href: "/leads", label: "Leads", icon: Users, exact: true },
     { href: "/leads/create", label: "New Lead", icon: UserPlus },
     { href: "/conversations", label: "Conversations", icon: MessageSquare },
+    { href: "/batches", label: "Batches", icon: Layers },
   ];
 
   return (

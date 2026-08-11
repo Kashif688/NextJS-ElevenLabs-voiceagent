@@ -97,6 +97,33 @@ export default async function ConversationDetailsPage({ params }: { params: Prom
               <p className="text-[0.95rem] font-medium text-slate-900">{formatDate(startTime)}</p>
             </div>
 
+            {/* Data Collection Section */}
+            <div className="pb-6 border-b border-slate-100">
+              <p className="text-[0.85rem] font-bold text-slate-700 mb-2">Data Collection (call_outcome)</p>
+              {(() => {
+                const outcomeObj = conversation.analysis?.data_collection_results?.call_outcome;
+                const outcomeVal = typeof outcomeObj === 'string' ? outcomeObj : outcomeObj?.value;
+                const rationale = outcomeObj?.rationale;
+
+                if (!outcomeVal) {
+                  return <span className="text-xs text-slate-400 italic">No outcome recorded</span>;
+                }
+
+                return (
+                  <div className="space-y-1.5">
+                    <span className="px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200/60 rounded-lg text-xs font-mono font-extrabold inline-block">
+                      {outcomeVal}
+                    </span>
+                    {rationale && (
+                      <p className="text-xs text-slate-500 italic leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-slate-100 mt-1">
+                        "{rationale}"
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+
             <div>
               <p className="text-[0.85rem] font-bold text-slate-700 mb-3">Call Audio Recording</p>
               <audio 

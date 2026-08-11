@@ -1,4 +1,6 @@
 import { getDashboardStats } from "@/actions/lead.actions";
+import { clearDatabaseAction } from "@/actions/admin.actions";
+import CleanDbClientButton from "@/components/CleanDbClientButton";
 import Link from "next/link";
 import { Users, PhoneCall, PhoneForwarded, PhoneMissed, Plus } from "lucide-react";
 import { getCurrentAgentId } from "@/actions/agent.actions";
@@ -77,10 +79,13 @@ export default async function Dashboard() {
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-6 md:p-7">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-[1.15rem] font-bold text-slate-900">Recent Leads</h3>
-          <Link href="/leads/create" className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold text-sm transition-all shadow-[0_2px_4px_rgba(79,70,229,0.2)] hover:-translate-y-px hover:shadow-[0_4px_8px_rgba(79,70,229,0.3)]">
-            <Plus size={18} />
-            Add New Lead
-          </Link>
+          <div className="flex items-center gap-3">
+            <CleanDbClientButton action={clearDatabaseAction} />
+            <Link href="/leads/create" className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-semibold text-sm transition-all shadow-[0_2px_4px_rgba(79,70,229,0.2)] hover:-translate-y-px hover:shadow-[0_4px_8px_rgba(79,70,229,0.3)]">
+              <Plus size={18} />
+              Add New Lead
+            </Link>
+          </div>
         </div>
 
         <div className="overflow-x-auto">

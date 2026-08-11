@@ -7,6 +7,7 @@ export interface ICallLog extends Document {
   callSummary?: string;
   recordingUrl?: string;
   callErrorReason?: string;
+  callOutcome?: string;
   rawWebhookPayload?: any;
   createdAt: Date;
   updatedAt: Date;
@@ -20,6 +21,7 @@ const CallLogSchema: Schema = new Schema(
     callSummary: { type: String },
     recordingUrl: { type: String },
     callErrorReason: { type: String },
+    callOutcome: { type: String },
     rawWebhookPayload: { type: Schema.Types.Mixed },
   },
   { timestamps: true }

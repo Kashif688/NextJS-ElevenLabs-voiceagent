@@ -3,13 +3,20 @@
 import { usePathname } from "next/navigation";
 import AgentSwitcher from "./AgentSwitcher";
 
-export default function Topbar({ currentAgentId = "" }: { currentAgentId?: string }) {
+export default function Topbar({
+  currentAgentId = "",
+  currentAgentName = "",
+}: {
+  currentAgentId?: string;
+  currentAgentName?: string;
+}) {
   const pathname = usePathname();
 
   let pageTitle = "Dashboard";
   if (pathname === "/leads") pageTitle = "All Leads";
   if (pathname === "/leads/create") pageTitle = "Create Lead";
   if (pathname === "/conversations") pageTitle = "Conversations";
+  if (pathname?.startsWith("/batches")) pageTitle = "Outbound Batches";
   if (pathname === "/agent/settings") pageTitle = "Agent Settings";
 
   return (
@@ -19,7 +26,7 @@ export default function Topbar({ currentAgentId = "" }: { currentAgentId?: strin
       </div>
 
       <div className="flex items-center gap-5">
-        <AgentSwitcher currentAgentId={currentAgentId} />
+        <AgentSwitcher currentAgentId={currentAgentId} initialAgentName={currentAgentName} />
         
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-50 text-emerald-500 border border-emerald-500/20 rounded-full text-sm font-bold shadow-sm">
           <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_0_0_rgba(16,185,129,0.7)]"></span>

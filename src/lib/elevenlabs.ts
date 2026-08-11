@@ -75,3 +75,54 @@ export async function getConversations(limit: number = 50, agentId?: string) {
     return null;
   }
 }
+
+export async function getBatchCalls() {
+  try {
+    const response = await client.get('/v1/convai/batch-calling/workspace');
+    return response.data;
+  } catch (error: any) {
+    console.error('Error fetching batch calls:', error.response?.data || error.message);
+    return null;
+  }
+}
+
+export async function getBatchCallDetails(batchId: string) {
+  try {
+    const response = await client.get(`/v1/convai/batch-calling/${batchId}`);
+    return response.data;
+  } catch (error: any) {
+    console.error('Error fetching batch call details:', error.response?.data || error.message);
+    return null;
+  }
+}
+
+export async function submitBatchCall(payload: {
+  call_name: string;
+  agent_id?: string;
+  agent_phone_number_id?: string;
+  recipients: Array<{
+    phone_number: string;
+    conversation_initiation_client_data?: {
+      dynamic_variables?: Record<string, string>;
+    };
+  }>;
+}) {
+  try {
+    const response = await client.post('/v1/convai/batch-calling/submit', {
+      agent_id: payload.agent_id || AGENT_ID,
+      agent_phone_number_id: payload.agent_phone_number_id || process.env.AGENT_PHONE_NUMBER_ID,
+      call_name: payload.call_name,
+      recipients: payload.recipients,
+    });
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error: any) {
+    console.error('Error submitting batch call:', error.response?.data || error.message);
+    return {
+      success: false,
+      error: error.response?.data?.detail || error.response?.data || error.message,
+    };
+  }
+}

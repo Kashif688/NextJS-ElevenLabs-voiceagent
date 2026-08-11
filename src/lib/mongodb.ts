@@ -2,7 +2,12 @@ import mongoose from 'mongoose';
 import dns from 'dns';
 
 // Fix for querySrv ECONNREFUSED errors on Windows / local DNS providers
-dns.setServers(['8.8.8.8', '8.8.4.4']);
+dns.setDefaultResultOrder('ipv4first');
+try {
+  dns.setServers(['1.1.1.1', '8.8.8.8', '1.0.0.1', '8.8.4.4']);
+} catch (e) {
+  // Ignore if DNS servers cannot be overridden
+}
 
 const MONGODB_URI = process.env.MONGODB_URI!;
 
