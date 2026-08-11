@@ -71,7 +71,7 @@ export default function LeadStatus({ lead, logs }: { lead: any, logs: any[] }) {
                 <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                   <div>
                     <span className="font-extrabold text-slate-900 mr-2">Attempt #{attemptNum}</span>
-                    <span className="text-slate-500 text-[0.8rem] font-medium">• {new Date(log.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at {new Date(log.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
+                    <span suppressHydrationWarning className="text-slate-500 text-[0.8rem] font-medium">• {new Date(log.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at {new Date(log.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-[0.7rem] font-bold uppercase tracking-wide ${
                     isCompleted ? 'bg-emerald-50 text-emerald-600' :

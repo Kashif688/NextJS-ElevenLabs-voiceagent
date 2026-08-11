@@ -59,7 +59,7 @@ export default async function AgentSettingsPage() {
         </div>
 
         {/* Form Section */}
-        <form action={saveAgentDetails} className="p-8 space-y-8">
+        <form suppressHydrationWarning action={saveAgentDetails} className="p-8 space-y-8">
           
           {/* 1. General Settings */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
