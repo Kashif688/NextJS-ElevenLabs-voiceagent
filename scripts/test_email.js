@@ -1,16 +1,20 @@
-const emailToTest = "developer.3knots@gmail.com"; // <-- IMPORTANT: Replace this with your actual email address
+const emailToTest = "kashifturk014@gmail.com"; 
 
 async function testEmail() {
   console.log(`Testing email route for: ${emailToTest}`);
   
   try {
-    // We send a POST request to our Next.js API route just like ElevenLabs would
-    const response = await fetch('http://localhost:3000/api/elevenlabs/send-email', {
+    // We send a POST request to your LOCAL Next.js API route
+    const response = await fetch('http://localhost:3000/api/send-email', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email_address: emailToTest }),
+      body: JSON.stringify({ 
+        to: emailToTest,
+        subject: 'Test Email from Next.js!',
+        message: 'Hello! If you are reading this, your Nodemailer setup with Gmail is working perfectly!'
+      }),
     });
 
     const data = await response.json();
