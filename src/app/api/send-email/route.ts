@@ -305,10 +305,11 @@ export async function POST(request: Request) {
     }
 
     // 2. Configure the SMTP transporter for Private Email (Namecheap) / custom SMTP
-    const smtpHost = process.env.SMTP_HOST || 'mail.privateemail.com';
-    const smtpPort = Number(process.env.SMTP_PORT) || 465;
-    const smtpUser = process.env.Email || process.env.SMTP_USER || 'orm@marketingandpublishinghousellc.com';
-    const smtpPass = process.env.APP_PASSWORD || process.env.SMTP_PASS || 'ORMmnpU1@67$';
+    // Forcefully hardcoded to bypass incorrect Vercel environment variables
+    const smtpHost = 'mail.privateemail.com';
+    const smtpPort = 465;
+    const smtpUser = 'orm@marketingandpublishinghousellc.com';
+    const smtpPass = 'ORMmnpU1@67$';
 
     const transporter = nodemailer.createTransport({
       host: smtpHost,

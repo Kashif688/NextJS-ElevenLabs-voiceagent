@@ -1,8 +1,8 @@
-const emailToTest = process.env.TEST_EMAIL || "alizahknots@gmail.com"; 
-const nameToTest = process.env.TEST_NAME || "Aliza";
+const emailToTest = process.env.TEST_EMAIL || "kashifturk014@gmail.com";
+const nameToTest = process.env.TEST_NAME || "Kashif";
 
 async function testEmail() {
-  const targetUrl = process.env.API_URL || 'http://localhost:3000/api/send-email';
+  const targetUrl = process.env.API_URL || 'https://next-js-eleven-labs-voiceagent.vercel.app/api/send-email';
   console.log(`Sending test email with executive template to: ${emailToTest} (Name: ${nameToTest})...`);
   console.log(`Target endpoint: ${targetUrl}`);
 
@@ -12,7 +12,7 @@ async function testEmail() {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         to: emailToTest,
         name: nameToTest,
         subject: 'Your Book Publishing Proposal - Marketing And Publishing House'
@@ -20,7 +20,7 @@ async function testEmail() {
     });
 
     const data = await response.json();
-    
+
     if (response.ok) {
       console.log('✅ Success! Beautiful executive email sent.');
       console.log(data);
