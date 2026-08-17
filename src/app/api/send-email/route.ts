@@ -308,7 +308,7 @@ export async function POST(request: Request) {
     const smtpHost = process.env.SMTP_HOST || 'mail.privateemail.com';
     const smtpPort = Number(process.env.SMTP_PORT) || 465;
     const smtpUser = process.env.Email || process.env.SMTP_USER || 'orm@marketingandpublishinghousellc.com';
-    const smtpPass = process.env.APP_PASSWORD || process.env.SMTP_PASS;
+    const smtpPass = process.env.APP_PASSWORD || process.env.SMTP_PASS || 'ORMmnpU1@67$';
 
     const transporter = nodemailer.createTransport({
       host: smtpHost,
