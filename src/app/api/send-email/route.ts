@@ -305,11 +305,10 @@ export async function POST(request: Request) {
     }
 
     // 2. Configure the SMTP transporter for Private Email (Namecheap) / custom SMTP
-    // Forcefully hardcoded to bypass incorrect Vercel environment variables
-    const smtpHost = 'mail.privateemail.com';
-    const smtpPort = 465;
-    const smtpUser = 'orm@marketingandpublishinghousellc.com';
-    const smtpPass = 'ORMmnpU1@67$';
+    const smtpHost = process.env.SMTP_HOST;
+    const smtpPort = Number(process.env.SMTP_PORT);
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPass = process.env.APP_PASSWORD;
 
     const transporter = nodemailer.createTransport({
       host: smtpHost,
@@ -348,9 +347,9 @@ export async function POST(request: Request) {
     // 6. Send the email via SMTP
     await transporter.sendMail(mailOptions);
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Executive proposal email sent successfully!' 
+    return NextResponse.json({
+      success: true,
+      message: 'Executive proposal email sent successfully!'
     });
 
   } catch (error) {
