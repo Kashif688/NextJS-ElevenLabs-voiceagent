@@ -120,8 +120,8 @@ export async function POST(request: NextRequest) {
     if (sendEmail && recipientEmail) {
       const smtpHost = process.env.SMTP_HOST || 'mail.privateemail.com';
       const smtpPort = Number(process.env.SMTP_PORT) || 465;
-      const smtpUser = process.env.SMTP_USER || 'orm@marketingandpublishinghousellc.com';
-      const smtpPass = process.env.APP_PASSWORD || 'ORMmnpU1@67$';
+      const smtpUser = process.env.SMTP_USER || 'connect@marketingandpublishinghousellc.com';
+      const smtpPass = process.env.APP_PASSWORD || 'NDw5Wc^n53-5qV(';
 
       const transporter = nodemailer.createTransport({
         host: smtpHost,
