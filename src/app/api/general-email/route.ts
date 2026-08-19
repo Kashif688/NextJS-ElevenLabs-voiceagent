@@ -97,7 +97,7 @@ export async function POST(request: Request) {
     const htmlTemplate = generateGeneralEmailHtml(message);
 
     const mailOptions = {
-      from: \`"\${senderName}" <\${smtpUser}>\`,
+      from: `"${senderName}" <${smtpUser}>`,
       to: to,
       subject: subject,
       text: message, // Plain text fallback
