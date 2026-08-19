@@ -147,7 +147,7 @@ function drawHeader(page: PDFPage, fontSansBold: PDFFont, fontSansRegular: PDFFo
   page.drawCircle({ x: col2X + 8, y: row1Y + 3, size: 7.5, color: CARD_WHITE });
   page.drawCircle({ x: col2X + 8, y: row1Y + 3, size: 6.2, color: BRAND_ORANGE });
   page.drawText('@', { x: col2X + 5.2, y: row1Y, size: 6.5, font: fontSansBold, color: CARD_WHITE });
-  page.drawText('Info@marketingandpublishinghousellc.com', { x: col2X + 20, y: row1Y, size: 6.5, font: fontSansBold, color: CARD_WHITE });
+  page.drawText('connect@marketingandpublishinghousellc.com', { x: col2X + 20, y: row1Y, size: 6.5, font: fontSansBold, color: CARD_WHITE });
 
   // 4. Address
   page.drawCircle({ x: col2X + 8, y: row2Y + 3, size: 7.5, color: CARD_WHITE });
