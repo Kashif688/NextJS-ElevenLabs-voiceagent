@@ -2,11 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { renderContractPdfBuffer } from '../../../../lib/contracts/renderContract';
 import { ContractProps } from '../../../../components/contracts/ContractDocument';
+import { formatPrice } from '../../../../lib/utils/formatPrice';
 
 function getTimestampString(): string {
   const now = new Date();
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  return `${year}${month}${day}_${hours}${minutes}${seconds}`;
 }
 
 export async function GET(request: NextRequest) {
@@ -14,7 +20,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const clientName = searchParams.get('clientName') || searchParams.get('name') || 'Ron Boucher';
     const planName = searchParams.get('planName') || 'Essential Reach Publishing Plan';
-    const price = searchParams.get('price') || '$1,699';
+    const price = formatPrice(searchParams.get('price'), '$1,099');
     const date = searchParams.get('date') || 'August 5th, 2026';
 
     const contractData: ContractProps = {
@@ -62,7 +68,7 @@ export async function POST(request: NextRequest) {
     const authorName = (clientName || name || 'Valued Author').trim();
     const recipientEmail = (email || to || '').trim();
     const finalPlanName = planName || 'Nationwide Publishing Plan';
-    const finalPrice = price || '$1,099';
+    const finalPrice = formatPrice(price, '$1,099');
 
     const contractData: ContractProps = {
       clientName: authorName,
@@ -163,7 +169,7 @@ export async function POST(request: NextRequest) {
       await transporter.sendMail({
         from: `"Marketing & Publishing House" <${smtpUser}>`,
         to: recipientEmail,
-        cc: 'alizahknots@gmail.com',
+        ...(process.env.CC_EMAIL ? { cc: process.env.CC_EMAIL } : {}),
         subject: `Your Book Publishing Service Contract - ${authorName} [${refId}]`,
         html: emailHtml,
         attachments: [
@@ -183,13 +189,13 @@ export async function POST(request: NextRequest) {
       refId,
       contract: {
         clientName: authorName,
-        planName,
-        price,
+        planName: finalPlanName,
+        price: finalPrice,
         date,
         filename,
       },
       emailSent,
-      downloadUrl: `/api/contracts/kickstarter?clientName=${encodeURIComponent(authorName)}&price=${encodeURIComponent(price)}&planName=${encodeURIComponent(planName)}`,
+      downloadUrl: `/api/contracts/nationwide?clientName=${encodeURIComponent(authorName)}&price=${encodeURIComponent(finalPrice)}&planName=${encodeURIComponent(finalPlanName)}`,
       pdfBase64: pdfBuffer.toString('base64'),
     });
   } catch (error: any) {

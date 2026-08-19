@@ -11,6 +11,8 @@ import {
   Rect,
 } from '@react-pdf/renderer';
 
+import { formatPrice } from '../../lib/utils/formatPrice';
+
 export interface ContractProps {
   clientName?: string;
   date?: string;
@@ -532,7 +534,7 @@ export const ContractDocument: React.FC<ContractProps> = ({
             <Text style={{ marginBottom: 4 }}>The payment terms decided are as follows:</Text>
 
             <View style={styles.highlightBox}>
-              <Text style={styles.highlightText}>• Total Investment: {price}</Text>
+              <Text style={styles.highlightText}>• Total Investment: {formatPrice(price)}</Text>
             </View>
 
             <Text style={{ marginTop: 4, marginBottom: 8 }}>
