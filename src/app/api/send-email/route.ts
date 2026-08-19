@@ -304,11 +304,19 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Configure the SMTP transporter for Private Email (Namecheap) / custom SMTP
-    const smtpHost = process.env.SMTP_HOST || 'mail.privateemail.com';
+    // 2. Configure the SMTP transporter using environment variables
+    const smtpHost = process.env.SMTP_HOST;
     const smtpPort = Number(process.env.SMTP_PORT) || 465;
-    const smtpUser = process.env.SMTP_USER || 'connect@marketingandpublishinghousellc.com';
-    const smtpPass = process.env.APP_PASSWORD || 'NDw5Wc^n53-5qV(';
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPass = process.env.APP_PASSWORD || process.env.SMTP_PASS;
+
+    if (!smtpHost || !smtpUser || !smtpPass) {
+      console.error('SMTP Error: Missing SMTP environment variables (SMTP_HOST, SMTP_USER, APP_PASSWORD/SMTP_PASS).');
+      return NextResponse.json(
+        { success: false, message: 'SMTP server settings are missing in environment configuration.' },
+        { status: 500 }
+      );
+    }
 
     const transporter = nodemailer.createTransport({
       host: smtpHost,

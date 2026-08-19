@@ -118,10 +118,10 @@ export async function POST(request: NextRequest) {
     // 2. Optionally email the contract directly
     let emailSent = false;
     if (sendEmail && recipientEmail) {
-      const smtpHost = process.env.SMTP_HOST || 'mail.privateemail.com';
+      const smtpHost = process.env.SMTP_HOST;
       const smtpPort = Number(process.env.SMTP_PORT) || 465;
-      const smtpUser = process.env.SMTP_USER || 'connect@marketingandpublishinghousellc.com';
-      const smtpPass = process.env.APP_PASSWORD || 'NDw5Wc^n53-5qV(';
+      const smtpUser = process.env.SMTP_USER;
+      const smtpPass = process.env.APP_PASSWORD || process.env.SMTP_PASS;
 
       const transporter = nodemailer.createTransport({
         host: smtpHost,
