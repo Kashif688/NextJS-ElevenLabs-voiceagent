@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     const clientName = searchParams.get('clientName') || searchParams.get('name') || 'Ron Boucher';
     const planName = searchParams.get('planName') || 'Essential Reach Publishing Plan';
     const price = formatPrice(searchParams.get('price'), '$1,099');
-    const date = searchParams.get('date') || 'August 5th, 2026';
+    const date = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
 
     const contractData: ContractProps = {
       clientName,
@@ -59,7 +59,6 @@ export async function POST(request: NextRequest) {
       name,
       email,
       to,
-      date = 'August 5th, 2026',
       planName,
       price,
       sendEmail = false,
@@ -69,6 +68,7 @@ export async function POST(request: NextRequest) {
     const recipientEmail = (email || to || '').trim();
     const finalPlanName = planName || 'Nationwide Publishing Plan';
     const finalPrice = formatPrice(price, '$1,099');
+    const date = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
 
     const contractData: ContractProps = {
       clientName: authorName,
