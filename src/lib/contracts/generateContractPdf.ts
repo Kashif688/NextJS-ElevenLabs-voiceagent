@@ -159,7 +159,7 @@ function drawHeader(page: PDFPage, fontSansBold: PDFFont, fontSansRegular: PDFFo
 /**
  * Generates the Contract PDF matching the exact visual layout from the screenshots
  */
-export async function generateContractPdf(data: ContractData = {}): Promise<Uint8Array> {
+export async function generateContractPdf(data: ContractData): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
 
   // Serif fonts for the formal legal text (exactly as shown in original PDF)

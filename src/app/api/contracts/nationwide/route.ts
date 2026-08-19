@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const clientName = searchParams.get('clientName') || searchParams.get('name') || 'Ron Boucher';
     const planName = searchParams.get('planName') || 'Essential Reach Publishing Plan';
-    const price = formatPrice(searchParams.get('price'), '$1,099');
+    const price = formatPrice(searchParams.get('price') ?? undefined, '$1,099');
     const date = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
 
     const contractData: ContractProps = {
