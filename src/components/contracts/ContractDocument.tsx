@@ -33,13 +33,13 @@ const YELLOW_HIGHLIGHT = '#fef533';
 const styles = StyleSheet.create({
   page: {
     backgroundColor: LIGHT_BG,
-    paddingTop: 14,
-    paddingBottom: 24,
+    paddingTop: 10,
+    paddingBottom: 12,
     paddingHorizontal: 0,
     fontFamily: 'Times-Roman',
-    fontSize: 9.5,
+    fontSize: 11,
     color: TEXT_BLACK,
-    lineHeight: 1.35,
+    lineHeight: 1.5,
   },
 
   // Full-width Header Container
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   cardContainer: {
     backgroundColor: WHITE,
     borderRadius: 14,
-    paddingVertical: 22,
+    paddingVertical: 14,
     paddingHorizontal: 26,
     flex: 1,
   },
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   // Section Typography
   docTitle: {
     fontFamily: 'Times-Bold',
-    fontSize: 15,
+    fontSize: 17,
     textAlign: 'center',
     textDecoration: 'underline',
     marginBottom: 18,
@@ -196,11 +196,11 @@ const styles = StyleSheet.create({
   },
   metaLabel: {
     fontFamily: 'Times-Roman',
-    fontSize: 10.5,
+    fontSize: 11.5,
   },
   metaValueBold: {
     fontFamily: 'Times-Bold',
-    fontSize: 10.5,
+    fontSize: 11.5,
   },
 
   // Parties Box
@@ -226,13 +226,13 @@ const styles = StyleSheet.create({
 
   sectionTitle: {
     fontFamily: 'Times-Bold',
-    fontSize: 11,
+    fontSize: 13,
     marginTop: 10,
     marginBottom: 6,
   },
   sectionSubTitle: {
     fontFamily: 'Times-Bold',
-    fontSize: 9.5,
+    fontSize: 11,
     marginTop: 6,
     marginBottom: 4,
   },
@@ -244,22 +244,22 @@ const styles = StyleSheet.create({
   },
   bulletRow: {
     flexDirection: 'row',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   bulletDot: {
     width: 14,
     fontFamily: 'Times-Bold',
-    fontSize: 10,
+    fontSize: 12.5,
   },
   bulletText: {
     flex: 1,
     fontFamily: 'Times-Roman',
-    fontSize: 9,
+    fontSize: 12.5,
   },
   bulletTextBold: {
     flex: 1,
     fontFamily: 'Times-Bold',
-    fontSize: 9,
+    fontSize: 12.5,
   },
 
   // Highlighted Box
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
   },
   highlightText: {
     fontFamily: 'Times-Bold',
-    fontSize: 10.5,
+    fontSize: 11.5,
     color: TEXT_BLACK,
   },
 
@@ -556,6 +556,22 @@ export const ContractDocument: React.FC<ContractProps> = ({
               ))}
             </View>
 
+            <Text style={styles.sectionSubTitle}>Chargeback Prevention & Dispute Policy</Text>
+            <View style={styles.bulletList}>
+              {[
+                'Author agrees not to file any chargebacks or disputes.',
+                'Any attempt to dispute may lead to:',
+                'Immediate contract termination.',
+                'Legal recovery of the service fee.',
+                'Charges for completed services.',
+              ].map((text, idx) => (
+                <View key={idx} style={styles.bulletRow}>
+                  <Text style={styles.bulletDot}>•</Text>
+                  <Text style={styles.bulletText}>{text}</Text>
+                </View>
+              ))}
+            </View>
+
             <Text style={styles.sectionTitle}>5. TIMELINE & PROCESS</Text>
             <Text style={{ marginBottom: 4 }}>A full timeline will be provided after reviewing the project however:</Text>
             <View style={styles.bulletRow}>
@@ -579,7 +595,16 @@ export const ContractDocument: React.FC<ContractProps> = ({
                 </View>
               ))}
             </View>
+          </View>
+        </View>
+      </Page>
 
+      {/* ================= PAGE 4 ================= */}
+      <Page size="A4" style={styles.page}>
+        <ContractHeader />
+
+        <View style={styles.contentWrapper}>
+          <View style={styles.cardContainer}>
             <Text style={styles.sectionTitle}>7. NDA - CONFIDENTIALITY & NON-DISCLOSURE</Text>
             <Text style={{ marginBottom: 4 }}>Both parties agree that:</Text>
             <View style={styles.bulletList}>
@@ -593,16 +618,7 @@ export const ContractDocument: React.FC<ContractProps> = ({
                 </View>
               ))}
             </View>
-          </View>
-        </View>
-      </Page>
 
-      {/* ================= PAGE 4 ================= */}
-      <Page size="A4" style={styles.page}>
-        <ContractHeader />
-
-        <View style={styles.contentWrapper}>
-          <View style={styles.cardContainer}>
             <View style={styles.bulletList}>
               {[
                 'All files, documents, and intellectual property shall remain strictly confidential.',
@@ -670,7 +686,16 @@ export const ContractDocument: React.FC<ContractProps> = ({
                 </View>
               ))}
             </View>
+          </View>
+        </View>
+      </Page>
 
+      {/* ================= PAGE 5 ================= */}
+      <Page size="A4" style={styles.page}>
+        <ContractHeader />
+
+        <View style={styles.contentWrapper}>
+          <View style={styles.cardContainer}>
             <Text style={styles.sectionTitle}>9. LIMITATION OF LIABILITY</Text>
             <Text style={{ marginBottom: 4 }}>Publisher/Marketing Support is not responsible for:</Text>
             <View style={styles.bulletList}>
@@ -686,16 +711,7 @@ export const ContractDocument: React.FC<ContractProps> = ({
                 </View>
               ))}
             </View>
-          </View>
-        </View>
-      </Page>
 
-      {/* ================= PAGE 5 ================= */}
-      <Page size="A4" style={styles.page}>
-        <ContractHeader />
-
-        <View style={styles.contentWrapper}>
-          <View style={styles.cardContainer}>
             <Text style={styles.sectionTitle}>10. GOVERNING LAW</Text>
             <Text style={styles.paragraph}>
               This Agreement shall be governed by and interpreted according to the laws of the State of Georgia, USA.
