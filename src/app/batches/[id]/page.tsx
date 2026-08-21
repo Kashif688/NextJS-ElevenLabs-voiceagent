@@ -65,13 +65,19 @@ const OUTCOME_CONFIG: Record<string, { label: string; color: string }> = {
   scheduled_with_senior: { label: "scheduled_with_senior", color: "#6366f1" }, // Indigo
   callback_requested: { label: "callback_requested", color: "#10b981" }, // Emerald
   spoke_but_declined: { label: "spoke_but_declined", color: "#a855f7" }, // Purple
-  voicemail: { label: "voicemail", color: "#ec4899" }, // Pink (ElevenLabs Style)
+  voicemail: { label: "voicemail", color: "#ec4899" }, // Pink
   no_answer: { label: "no_answer", color: "#3b82f6" }, // Blue
-  wrong_number: { label: "wrong_number", color: "#f43f5e" }, // Rose
-  busy: { label: "busy", color: "#f59e0b" }, // Amber
-  hung_up: { label: "hung_up", color: "#ef4444" }, // Crimson
-  no_info_provided: { label: "no_info_provided", color: "#64748b" }, // Slate
+  wrong_number_hangup: { label: "wrong_number_hangup", color: "#f43f5e" }, // Rose
+  busy_hangup: { label: "busy_hangup", color: "#f59e0b" }, // Amber
+  not_interested_hangup: { label: "not_interested_hangup", color: "#64748b" }, // Slate
+  immediate_hangup: { label: "immediate_hangup", color: "#ef4444" }, // Crimson
+  ai_objection_hangup: { label: "ai_objection_hangup", color: "#d946ef" }, // Fuchsia
+  speak_no_word: { label: "speak_no_word", color: "#94a3b8" }, // Slate Light
   call_ended_quickly: { label: "call_ended_quickly", color: "#f97316" }, // Orange
+  hung_up: { label: "hung_up", color: "#ef4444" }, // Crimson (legacy)
+  wrong_number: { label: "wrong_number", color: "#f43f5e" }, // Rose (legacy)
+  busy: { label: "busy", color: "#f59e0b" }, // Amber (legacy)
+  no_info_provided: { label: "no_info_provided", color: "#94a3b8" }, // Slate
   other: { label: "other", color: "#06b6d4" }, // Cyan
   null: { label: "unprocessed / null", color: "#cbd5e1" },
 };
