@@ -115,6 +115,18 @@ function extractCallOutcome(item: any, log?: any) {
   return "not_evaluated";
 }
 
+function extractOneLineSummary(item: any, log?: any): string | null {
+  const dataCollection = item?.analysis?.data_collection_results;
+  const oneLine = dataCollection?.one_line_summary;
+  const val = extractOutcomeString(oneLine);
+  if (val) return val;
+
+  if (log?.oneLineSummary) return log.oneLineSummary;
+  if (item?.one_line_summary) return item.one_line_summary;
+
+  return item?.analysis?.transcript_summary || item?.transcript_summary || item?.summary || log?.callSummary || null;
+}
+
 export default function BatchConversationsList({
   recipients = [],
   callLogs = [],
@@ -171,7 +183,7 @@ export default function BatchConversationsList({
         const q = searchQuery.toLowerCase();
         const phoneNumber = (item.phone_number || item.to_number || item.recipient_phone_number || log?.leadId?.phoneNumber || "").toLowerCase();
         const name = (item.name || item.recipient_name || (log?.leadId ? `${log.leadId.firstName} ${log.leadId.lastName}` : "")).toLowerCase();
-        const summary = (item.analysis?.transcript_summary || item.transcript_summary || item.summary || log?.callSummary || "").toLowerCase();
+        const summary = (extractOneLineSummary(item, log) || "").toLowerCase();
 
         return phoneNumber.includes(q) || name.includes(q) || summary.includes(q);
       }
@@ -299,8 +311,8 @@ export default function BatchConversationsList({
             <tr>
               <th className="px-5 py-3.5 border-b border-slate-200 rounded-tl-lg">Recipient / Phone</th>
               <th className="px-5 py-3.5 border-b border-slate-200">Call Status</th>
-              <th className="px-5 py-3.5 border-b border-slate-200">Topic / Summary</th>
               <th className="px-5 py-3.5 border-b border-slate-200">call_outcome</th>
+              <th className="px-5 py-3.5 border-b border-slate-200">one_line_summary</th>
               <th className="px-5 py-3.5 border-b border-slate-200">Duration</th>
               <th className="px-5 py-3.5 border-b border-slate-200 rounded-tr-lg">Action</th>
             </tr>
@@ -324,7 +336,7 @@ export default function BatchConversationsList({
                 const callStatus = item.recipientStatus || item.call_status || item.status || "completed";
                 const isLast = index === filteredRecipients.length - 1;
 
-                const summary = item.analysis?.transcript_summary || item.transcript_summary || item.summary || log?.callSummary;
+                const oneLineSummary = extractOneLineSummary(item, log);
                 const outcome = extractCallOutcome(item, log);
                 const durationSecs =
                   item.metadata?.call_duration_secs ??
@@ -364,17 +376,6 @@ export default function BatchConversationsList({
                       </span>
                     </td>
 
-                    {/* Topic / Summary */}
-                    <td className={`px-5 py-4 border-b border-slate-200 max-w-[280px] ${isLast ? 'border-none' : ''}`}>
-                      {summary ? (
-                        <p className="text-xs text-slate-700 font-medium line-clamp-2 leading-relaxed">
-                          {summary}
-                        </p>
-                      ) : (
-                        <span className="text-xs text-slate-400 italic">No summary</span>
-                      )}
-                    </td>
-
                     {/* call_outcome */}
                     <td className={`px-5 py-4 border-b border-slate-200 ${isLast ? 'border-none' : ''}`}>
                       {outcome === null || outcome === undefined ? (
@@ -383,6 +384,17 @@ export default function BatchConversationsList({
                         <span className={`px-2.5 py-1 ${cfg.bg} ${cfg.text} border ${cfg.border} rounded-lg text-xs font-mono font-semibold`}>
                           {String(outcome)}
                         </span>
+                      )}
+                    </td>
+
+                    {/* one_line_summary */}
+                    <td className={`px-5 py-4 border-b border-slate-200 max-w-[280px] ${isLast ? 'border-none' : ''}`}>
+                      {oneLineSummary ? (
+                        <p className="text-xs text-slate-700 font-medium line-clamp-2 leading-relaxed">
+                          {oneLineSummary}
+                        </p>
+                      ) : (
+                        <span className="text-xs text-slate-400 italic">No summary</span>
                       )}
                     </td>
 
