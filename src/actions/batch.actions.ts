@@ -124,13 +124,13 @@ export async function reanalyzeBatchAction(batchId: string, limit?: number, skip
               } else if (statusLower.includes("no_answer") || statusLower.includes("no answer")) {
                 outcome = "no_answer";
               } else if (statusLower.includes("busy")) {
-                outcome = "busy";
+                outcome = "busy_hangup";
               } else if (statusLower.includes("failed") || statusLower.includes("error")) {
-                outcome = "no_answer";
-              } else if (durationSecs < 10 || transcript.length === 0) {
-                outcome = "call_ended_quickly";
+                outcome = "failed";
+              } else if (Array.isArray(transcript) && transcript.length === 0 && durationSecs > 0) {
+                outcome = "speak_no_word";
               } else {
-                outcome = "no_info_provided";
+                outcome = "not_evaluated";
               }
             }
 

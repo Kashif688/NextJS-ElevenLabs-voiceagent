@@ -18,30 +18,26 @@ function formatDuration(seconds: number | undefined) {
   return `${m}m ${s}s`;
 }
 
+function extractOutcomeString(val: any): string | null {
+  if (!val) return null;
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (trimmed === '[object Object]' || trimmed === '' || trimmed === 'null' || trimmed === 'undefined') return null;
+    return trimmed;
+  }
+  if (typeof val === 'object') {
+    if (val.value && typeof val.value === 'string') return val.value.trim();
+    if (val.result && typeof val.result === 'string') return val.result.trim();
+    if (val.response && typeof val.response === 'string') return val.response.trim();
+    return null;
+  }
+  return String(val);
+}
+
 function extractCallOutcome(item: any, log?: any) {
-  if (log?.callOutcome) return log.callOutcome;
-  
-  const dataCollection = item?.analysis?.data_collection_results;
-  if (dataCollection) {
-    const outcomeObj = dataCollection.call_outcome;
-    if (typeof outcomeObj === 'string') return outcomeObj;
-    if (outcomeObj?.value !== undefined && outcomeObj?.value !== null) return outcomeObj.value;
-  }
+  const callStatus = String(item?.recipientStatus || item?.call_status || item?.status || log?.callStatus || "").toLowerCase();
 
-  const evalCriteria = item?.analysis?.evaluation_criteria_results;
-  if (evalCriteria?.call_outcome) {
-    const val = evalCriteria.call_outcome.result || evalCriteria.call_outcome.value;
-    if (val !== undefined && val !== null) return val;
-  }
-
-  const outcome = item?.call_outcome !== undefined && item?.call_outcome !== null ? item.call_outcome : null;
-  if (outcome) return outcome;
-
-  // Fallback for voicemail, no answer, short calls when explicit LLM outcome is missing
-  const callStatus = String(item?.call_status || item?.status || log?.callStatus || "").toLowerCase();
-  const durationSecs = item?.metadata?.call_duration_secs ?? item?.call_duration_secs ?? item?.duration_secs ?? item?.duration ?? log?.callDurationSecs ?? 0;
-  const transcript = item?.transcript || [];
-
+  // 1. Prioritize telephony connection outcomes
   if (callStatus.includes("voicemail")) {
     return "voicemail";
   }
@@ -49,37 +45,79 @@ function extractCallOutcome(item: any, log?: any) {
     return "no_answer";
   }
   if (callStatus.includes("busy")) {
-    return "busy";
+    return "busy_hangup";
   }
   if (callStatus.includes("failed") || callStatus.includes("error")) {
-    return "no_answer";
-  }
-  if (durationSecs < 10 || (Array.isArray(transcript) && transcript.length === 0)) {
-    return "call_ended_quickly";
+    return "failed";
   }
 
-  return "no_info_provided";
+  // 2. Check Database Log outcome
+  const logOutcome = extractOutcomeString(log?.callOutcome);
+  if (logOutcome && logOutcome !== "call_ended_quickly" && logOutcome !== "no_info_provided") {
+    return logOutcome;
+  }
+
+  // 3. Check ElevenLabs LLM Data Collection Results
+  const dataCollection = item?.analysis?.data_collection_results;
+  const llmOutcome = extractOutcomeString(dataCollection?.call_outcome);
+  if (llmOutcome && llmOutcome !== "call_ended_quickly" && llmOutcome !== "no_info_provided") {
+    return llmOutcome;
+  }
+
+  // 4. Check Evaluation Criteria Results
+  const evalCriteria = item?.analysis?.evaluation_criteria_results;
+  const evalOutcome = extractOutcomeString(evalCriteria?.call_outcome);
+  if (evalOutcome && evalOutcome !== "call_ended_quickly" && evalOutcome !== "no_info_provided") {
+    return evalOutcome;
+  }
+
+  // 5. Check if transcript was empty (user never spoke)
+  const transcript = item?.transcript || [];
+  const durationSecs = item?.metadata?.call_duration_secs ?? item?.call_duration_secs ?? item?.duration_secs ?? item?.duration ?? log?.callDurationSecs ?? 0;
+  if (Array.isArray(transcript) && transcript.length === 0 && durationSecs > 0) {
+    return "speak_no_word";
+  }
+
+  // 6. Return LLM value if present
+  if (llmOutcome) {
+    if (llmOutcome === "no_info_provided") return "not_evaluated";
+    return llmOutcome;
+  }
+  if (evalOutcome) {
+    if (evalOutcome === "no_info_provided") return "not_evaluated";
+    return evalOutcome;
+  }
+  if (logOutcome) {
+    if (logOutcome === "no_info_provided") return "not_evaluated";
+    return logOutcome;
+  }
+
+  return "not_evaluated";
 }
 
 const OUTCOME_CONFIG: Record<string, { label: string; color: string }> = {
   scheduled_with_senior: { label: "scheduled_with_senior", color: "#6366f1" }, // Indigo
-  callback_requested: { label: "callback_requested", color: "#10b981" }, // Emerald
+  plans_emailed: { label: "plans_emailed", color: "#0ea5e9" }, // Sky
+  contract_sent: { label: "contract_sent", color: "#10b981" }, // Emerald
   spoke_but_declined: { label: "spoke_but_declined", color: "#a855f7" }, // Purple
+  not_interestd_hangup: { label: "not_interestd_hangup", color: "#64748b" }, // Slate
+  busy_hangup: { label: "busy_hangup", color: "#f59e0b" }, // Amber
+  ai_objection_hangup: { label: "ai_objection_hangup", color: "#d946ef" }, // Fuchsia
+  immediate_hangup: { label: "immediate_hangup", color: "#ef4444" }, // Crimson
+  speak_no_word: { label: "speak_no_word", color: "#94a3b8" }, // Slate Light
   voicemail: { label: "voicemail", color: "#ec4899" }, // Pink
+  callback_requested: { label: "callback_requested", color: "#14b8a6" }, // Teal
   no_answer: { label: "no_answer", color: "#3b82f6" }, // Blue
   wrong_number_hangup: { label: "wrong_number_hangup", color: "#f43f5e" }, // Rose
-  busy_hangup: { label: "busy_hangup", color: "#f59e0b" }, // Amber
-  not_interested_hangup: { label: "not_interested_hangup", color: "#64748b" }, // Slate
-  immediate_hangup: { label: "immediate_hangup", color: "#ef4444" }, // Crimson
-  ai_objection_hangup: { label: "ai_objection_hangup", color: "#d946ef" }, // Fuchsia
-  speak_no_word: { label: "speak_no_word", color: "#94a3b8" }, // Slate Light
+  wrong_number: { label: "wrong_number", color: "#f43f5e" }, // Rose
+  busy: { label: "busy", color: "#f59e0b" }, // Amber
+  hung_up: { label: "hung_up", color: "#ef4444" }, // Crimson
   call_ended_quickly: { label: "call_ended_quickly", color: "#f97316" }, // Orange
-  hung_up: { label: "hung_up", color: "#ef4444" }, // Crimson (legacy)
-  wrong_number: { label: "wrong_number", color: "#f43f5e" }, // Rose (legacy)
-  busy: { label: "busy", color: "#f59e0b" }, // Amber (legacy)
   no_info_provided: { label: "no_info_provided", color: "#94a3b8" }, // Slate
+  not_evaluated: { label: "not_evaluated", color: "#cbd5e1" }, // Light Slate
+  failed: { label: "failed", color: "#ef4444" }, // Red
   other: { label: "other", color: "#06b6d4" }, // Cyan
-  null: { label: "unprocessed / null", color: "#cbd5e1" },
+  null: { label: "unprocessed", color: "#cbd5e1" },
 };
 
 export default async function BatchDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -107,7 +145,7 @@ export default async function BatchDetailPage({ params }: { params: Promise<{ id
   const batchName = batchDetails.name || batchDetails.title || `Batch ${id.substring(0, 8)}`;
   const status = batchDetails.status || "completed";
   const rawRecipients = batchDetails.recipients || batchDetails.recipient_calls || batchDetails.calls || batchDetails.conversations || batchDetails.items || [];
-  
+
   // Enrich recipients with detailed conversation metadata (duration, transcript summary, call_outcome)
   const recipients = await Promise.all(
     rawRecipients.map(async (item: any) => {
@@ -142,7 +180,7 @@ export default async function BatchDetailPage({ params }: { params: Promise<{ id
   recipients.forEach((item: any) => {
     const convId = item.conversation_id || item.id || item.elevenlabs_conversation_id;
     const log = convId ? callLogMap.get(convId) : null;
-    
+
     // Level 1: Raw Delivery Status from Batch Recipient Engine
     const statusRaw = String(item.recipientStatus || item.call_status || item.status || log?.callStatus || "completed").toLowerCase();
     let deliveryKey = "completed";
@@ -155,10 +193,8 @@ export default async function BatchDetailPage({ params }: { params: Promise<{ id
 
     // Level 2: Conversation Outcome
     const outcome = extractCallOutcome(item, log) || "no_info_provided";
-    
-    if (deliveryKey === "completed") {
-      outcomesCount[outcome] = (outcomesCount[outcome] || 0) + 1;
-    }
+
+    outcomesCount[outcome] = (outcomesCount[outcome] || 0) + 1;
 
     const duration = item.metadata?.call_duration_secs ?? item.call_duration_secs ?? item.duration_secs ?? item.duration ?? 0;
     totalDurationSecs += duration;
@@ -167,7 +203,7 @@ export default async function BatchDetailPage({ params }: { params: Promise<{ id
       answeredCalls++;
     }
 
-    if (["scheduled_with_senior", "callback_requested"].includes(outcome)) {
+    if (["scheduled_with_senior", "callback_requested", "plans_emailed", "contract_sent"].includes(outcome)) {
       convertedCalls++;
     }
   });
@@ -203,7 +239,7 @@ export default async function BatchDetailPage({ params }: { params: Promise<{ id
       label: config.label,
       count,
       color: config.color,
-      percentage: answeredCalls > 0 ? (count / answeredCalls) * 100 : 0,
+      percentage: totalCalls > 0 ? (count / totalCalls) * 100 : 0,
     };
   });
 

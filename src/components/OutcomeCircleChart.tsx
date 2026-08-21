@@ -23,7 +23,7 @@ export default function OutcomeCircleChart({
   const [activeTab, setActiveTab] = useState<"status" | "outcome">("status");
   const [activeItem, setActiveItem] = useState<OutcomeItem | null>(null);
 
-  const currentData = activeTab === "status" ? statusData : outcomeData;
+  const currentData = outcomeData;
   const total = currentData.reduce((acc, item) => acc + item.count, 0);
 
   if (total === 0 || currentData.length === 0) {
@@ -56,48 +56,15 @@ export default function OutcomeCircleChart({
 
   return (
     <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-sm space-y-6">
-      {/* 2-Level Breakdown Toggle Tabs */}
+      {/* Analytics Breakdown Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
         <div>
           <h2 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
             Batch Analytics & Breakdown
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Switch between raw call connection status and ElevenLabs LLM conversation outcomes
+            ElevenLabs LLM conversation outcomes for all tracked calls in this batch
           </p>
-        </div>
-
-        {/* Tab Switcher */}
-        <div className="inline-flex p-1 bg-slate-100/90 rounded-xl border border-slate-200/60">
-          <button
-            onClick={() => {
-              setActiveTab("status");
-              setActiveItem(null);
-            }}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === "status"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-500 hover:text-slate-800"
-            }`}
-          >
-            <PhoneCall size={13} className={activeTab === "status" ? "text-indigo-600" : "text-slate-400"} />
-            1. Connection Status (Voicemail / Answer)
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab("outcome");
-              setActiveItem(null);
-            }}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === "outcome"
-                ? "bg-white text-slate-900 shadow-sm"
-                : "text-slate-500 hover:text-slate-800"
-            }`}
-          >
-            <Sparkles size={13} className={activeTab === "outcome" ? "text-purple-600" : "text-slate-400"} />
-            2. LLM Conversation Outcomes
-          </button>
         </div>
       </div>
 
@@ -141,9 +108,9 @@ export default function OutcomeCircleChart({
             </span>
             <span 
               className="text-[0.65rem] font-extrabold uppercase tracking-wider text-slate-400 max-w-[120px] truncate leading-snug mt-0.5"
-              title={activeItem ? activeItem.label : (activeTab === "status" ? "TOTAL CALLS" : "ANSWERED CALLS")}
+              title={activeItem ? activeItem.label : "TOTAL CALLS"}
             >
-              {activeItem ? activeItem.label : (activeTab === "status" ? "TOTAL CALLS" : "ANSWERED CALLS")}
+              {activeItem ? activeItem.label : "TOTAL CALLS"}
             </span>
             {activeItem && (
               <span 
@@ -162,10 +129,10 @@ export default function OutcomeCircleChart({
         <div className="flex-1 w-full space-y-3">
           <div className="flex items-center justify-between border-b border-slate-100 pb-2">
             <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
-              {activeTab === "status" ? "ElevenLabs Delivery Status Breakdown" : "Conversation Outcome Breakdown (LLM Data Collection)"}
+              Conversation Outcome Breakdown (LLM Data Collection)
             </span>
             <span className="text-xs font-bold text-slate-500 font-mono">
-              {activeTab === "status" ? `${total} Total Tracked` : `${total} Answered Calls`}
+              {total} Total Tracked
             </span>
           </div>
 

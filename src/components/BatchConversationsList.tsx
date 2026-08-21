@@ -6,17 +6,28 @@ import { MessageSquare, User, Filter, Search, X } from "lucide-react";
 
 const OUTCOME_CONFIG: Record<string, { label: string; bg: string; text: string; border: string }> = {
   scheduled_with_senior: { label: "scheduled_with_senior", bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200" },
-  callback_requested: { label: "callback_requested", bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
+  plans_emailed: { label: "plans_emailed", bg: "bg-sky-50", text: "text-sky-700", border: "border-sky-200" },
+  contract_sent: { label: "contract_sent", bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
   spoke_but_declined: { label: "spoke_but_declined", bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200" },
+  not_interestd_hangup: { label: "not_interestd_hangup", bg: "bg-slate-100", text: "text-slate-700", border: "border-slate-300" },
+  not_interested_hangup: { label: "not_interested_hangup", bg: "bg-slate-100", text: "text-slate-700", border: "border-slate-300" },
+  busy_hangup: { label: "busy_hangup", bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200" },
+  ai_objection_hangup: { label: "ai_objection_hangup", bg: "bg-fuchsia-50", text: "text-fuchsia-700", border: "border-fuchsia-200" },
+  immediate_hangup: { label: "immediate_hangup", bg: "bg-red-50", text: "text-red-700", border: "border-red-200" },
+  speak_no_word: { label: "speak_no_word", bg: "bg-slate-100", text: "text-slate-600", border: "border-slate-200" },
   voicemail: { label: "voicemail", bg: "bg-pink-50", text: "text-pink-700", border: "border-pink-200" },
+  callback_requested: { label: "callback_requested", bg: "bg-teal-50", text: "text-teal-700", border: "border-teal-200" },
   no_answer: { label: "no_answer", bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
+  wrong_number_hangup: { label: "wrong_number_hangup", bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200" },
   wrong_number: { label: "wrong_number", bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200" },
   busy: { label: "busy", bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200" },
   hung_up: { label: "hung_up", bg: "bg-red-50", text: "text-red-700", border: "border-red-200" },
-  no_info_provided: { label: "no_info_provided", bg: "bg-slate-100", text: "text-slate-700", border: "border-slate-300" },
   call_ended_quickly: { label: "call_ended_quickly", bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200" },
+  no_info_provided: { label: "no_info_provided", bg: "bg-slate-100", text: "text-slate-700", border: "border-slate-300" },
+  not_evaluated: { label: "not_evaluated", bg: "bg-slate-100", text: "text-slate-500", border: "border-slate-200" },
+  failed: { label: "failed", bg: "bg-red-50", text: "text-red-700", border: "border-red-200" },
   other: { label: "other", bg: "bg-cyan-50", text: "text-cyan-700", border: "border-cyan-200" },
-  null: { label: "unprocessed / null", bg: "bg-slate-100", text: "text-slate-500", border: "border-slate-200" },
+  null: { label: "unprocessed", bg: "bg-slate-100", text: "text-slate-500", border: "border-slate-200" },
 };
 
 function formatDuration(seconds: number | undefined) {
@@ -27,27 +38,26 @@ function formatDuration(seconds: number | undefined) {
   return `${m}m ${s}s`;
 }
 
+function extractOutcomeString(val: any): string | null {
+  if (!val) return null;
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (trimmed === '[object Object]' || trimmed === '' || trimmed === 'null' || trimmed === 'undefined') return null;
+    return trimmed;
+  }
+  if (typeof val === 'object') {
+    if (val.value && typeof val.value === 'string') return val.value.trim();
+    if (val.result && typeof val.result === 'string') return val.result.trim();
+    if (val.response && typeof val.response === 'string') return val.response.trim();
+    return null;
+  }
+  return String(val);
+}
+
 function extractCallOutcome(item: any, log?: any) {
-  if (log?.callOutcome) return log.callOutcome;
-  const dataCollection = item?.analysis?.data_collection_results;
-  if (dataCollection) {
-    const outcomeObj = dataCollection.call_outcome;
-    if (typeof outcomeObj === 'string') return outcomeObj;
-    if (outcomeObj?.value !== undefined && outcomeObj?.value !== null) return outcomeObj.value;
-  }
-  const evalCriteria = item?.analysis?.evaluation_criteria_results;
-  if (evalCriteria?.call_outcome) {
-    const val = evalCriteria.call_outcome.result || evalCriteria.call_outcome.value;
-    if (val !== undefined && val !== null) return val;
-  }
-  const outcome = item?.call_outcome !== undefined && item?.call_outcome !== null ? item.call_outcome : null;
-  if (outcome) return outcome;
+  const callStatus = String(item?.recipientStatus || item?.call_status || item?.status || log?.callStatus || "").toLowerCase();
 
-  // Fallback for voicemail, no answer, short calls when explicit LLM outcome is missing
-  const callStatus = String(item?.call_status || item?.status || log?.callStatus || "").toLowerCase();
-  const durationSecs = item?.metadata?.call_duration_secs ?? item?.call_duration_secs ?? item?.duration_secs ?? item?.duration ?? log?.callDurationSecs ?? 0;
-  const transcript = item?.transcript || [];
-
+  // 1. Prioritize telephony status
   if (callStatus.includes("voicemail")) {
     return "voicemail";
   }
@@ -55,16 +65,54 @@ function extractCallOutcome(item: any, log?: any) {
     return "no_answer";
   }
   if (callStatus.includes("busy")) {
-    return "busy";
+    return "busy_hangup";
   }
   if (callStatus.includes("failed") || callStatus.includes("error")) {
-    return "no_answer";
-  }
-  if (durationSecs < 10 || (Array.isArray(transcript) && transcript.length === 0)) {
-    return "call_ended_quickly";
+    return "failed";
   }
 
-  return "no_info_provided";
+  // 2. Check Database Log outcome
+  const logOutcome = extractOutcomeString(log?.callOutcome);
+  if (logOutcome && logOutcome !== "call_ended_quickly" && logOutcome !== "no_info_provided") {
+    return logOutcome;
+  }
+
+  // 3. Check ElevenLabs LLM Data Collection Results
+  const dataCollection = item?.analysis?.data_collection_results;
+  const llmOutcome = extractOutcomeString(dataCollection?.call_outcome);
+  if (llmOutcome && llmOutcome !== "call_ended_quickly" && llmOutcome !== "no_info_provided") {
+    return llmOutcome;
+  }
+
+  // 4. Check Evaluation Criteria Results
+  const evalCriteria = item?.analysis?.evaluation_criteria_results;
+  const evalOutcome = extractOutcomeString(evalCriteria?.call_outcome);
+  if (evalOutcome && evalOutcome !== "call_ended_quickly" && evalOutcome !== "no_info_provided") {
+    return evalOutcome;
+  }
+
+  // 5. Check if transcript was empty
+  const transcript = item?.transcript || [];
+  const durationSecs = item?.metadata?.call_duration_secs ?? item?.call_duration_secs ?? item?.duration_secs ?? item?.duration ?? log?.callDurationSecs ?? 0;
+  if (Array.isArray(transcript) && transcript.length === 0 && durationSecs > 0) {
+    return "speak_no_word";
+  }
+
+  // 6. Return LLM value if present
+  if (llmOutcome) {
+    if (llmOutcome === "no_info_provided") return "not_evaluated";
+    return llmOutcome;
+  }
+  if (evalOutcome) {
+    if (evalOutcome === "no_info_provided") return "not_evaluated";
+    return evalOutcome;
+  }
+  if (logOutcome) {
+    if (logOutcome === "no_info_provided") return "not_evaluated";
+    return logOutcome;
+  }
+
+  return "not_evaluated";
 }
 
 export default function BatchConversationsList({
@@ -137,12 +185,21 @@ export default function BatchConversationsList({
     { key: "scheduled_with_senior", label: "scheduled_with_senior" },
     { key: "callback_requested", label: "callback_requested" },
     { key: "spoke_but_declined", label: "spoke_but_declined" },
+    { key: "plans_emailed", label: "plans_emailed" },
+    { key: "contract_sent", label: "contract_sent" },
+    { key: "transfered_billing", label: "transfered_billing" },
+    { key: "voicemail", label: "voicemail" },
     { key: "no_answer", label: "no_answer" },
-    { key: "wrong_number", label: "wrong_number" },
-    { key: "busy", label: "busy" },
-    { key: "hung_up", label: "hung_up" },
-    { key: "no_info_provided", label: "no_info_provided" },
+    { key: "wrong_number_hangup", label: "wrong_number_hangup" },
+    { key: "busy_hangup", label: "busy_hangup" },
+    { key: "not_interestd_hangup", label: "not_interested_hangup" },
+    { key: "not_interested_hangup", label: "not_interested_hangup" },
+    { key: "immediate_hangup", label: "immediate_hangup" },
+    { key: "ai_objection_hangup", label: "ai_objection_hangup" },
+    { key: "speak_no_word", label: "speak_no_word" },
     { key: "call_ended_quickly", label: "call_ended_quickly" },
+    { key: "not_evaluated", label: "not_evaluated" },
+    { key: "failed", label: "failed" },
     { key: "other", label: "other" },
   ];
 
