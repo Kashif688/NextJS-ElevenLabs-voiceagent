@@ -16,8 +16,8 @@ export const initiateOutboundCall = inngest.createFunction(
       throw new Error(`Lead ${leadId} not found`);
     }
 
-    if (["initiating", "in_progress", "ringing", "completed"].includes(lead.callStatus)) {
-      return { message: "Call already initiated or completed." };
+    if (["initiating", "in_progress", "ringing"].includes(lead.callStatus)) {
+      return { message: "Call already initiated or is active." };
     }
 
     if (lead.callType === "auto" && lead.callDelayMinutes && lead.callDelayMinutes > 0) {
@@ -26,7 +26,7 @@ export const initiateOutboundCall = inngest.createFunction(
       // Re-fetch lead after sleep to ensure it hasn't been cancelled or called manually
       await connectDB();
       lead = await Lead.findById(leadId);
-      if (!lead || ["initiating", "in_progress", "ringing", "completed"].includes(lead.callStatus)) {
+      if (!lead || ["initiating", "in_progress", "ringing"].includes(lead.callStatus)) {
         return { message: "Call status changed during delay. Aborting." };
       }
     }
