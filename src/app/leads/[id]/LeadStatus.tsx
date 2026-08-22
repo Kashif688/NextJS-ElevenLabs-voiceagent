@@ -147,14 +147,16 @@ export default function LeadStatus({ lead, logs }: { lead: any, logs: any[] }) {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        <div>
-                          <h4 className="text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">
-                            AI Call Summary
-                          </h4>
-                          <div className="text-sm text-slate-700 leading-relaxed font-medium bg-slate-50 p-3.5 rounded-xl border border-slate-100">
-                            {log.callSummary || "Conversation completed successfully."}
+                        {log.callStatus === "completed" && (
+                          <div>
+                            <h4 className="text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">
+                              AI Call Summary
+                            </h4>
+                            <div className="text-sm text-slate-700 leading-relaxed font-medium bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                              {log.callSummary || "Conversation completed successfully."}
+                            </div>
                           </div>
-                        </div>
+                        )}
 
                         {log.elevenlabsConversationId && (
                           <div className="pt-2">

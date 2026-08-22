@@ -18,17 +18,32 @@ export async function triggerOutboundCall(
   agentPhoneNumberId?: string
 ) {
   try {
-    const response = await client.post(`/v1/convai/twilio/outbound-call`, {
+    const targetPhoneId = agentPhoneNumberId || process.env.AGENT_PHONE_NUMBER_ID;
+    
+    // Fetch phone numbers config to determine the provider (twilio vs sip_trunk)
+    const phoneResponse = await client.get('/v1/convai/phone-numbers');
+    const phoneNumbers = phoneResponse.data?.phone_numbers || phoneResponse.data || [];
+    const phoneConfig = phoneNumbers.find((p: any) => p.phone_number_id === targetPhoneId);
+    
+    let endpoint = '/v1/convai/twilio/outbound-call'; // Default to twilio
+    if (phoneConfig?.provider === 'sip_trunk') {
+      endpoint = '/v1/convai/sip-trunk/outbound-call';
+    } else if (phoneConfig?.provider === 'exotel') {
+      endpoint = '/v1/convai/exotel/outbound-call';
+    }
+
+    const response = await client.post(endpoint, {
       agent_id: agentId || AGENT_ID,
-      agent_phone_number_id: agentPhoneNumberId || process.env.AGENT_PHONE_NUMBER_ID,
+      agent_phone_number_id: targetPhoneId,
       to_number: phoneNumber,
       dynamic_variables: dynamicVariables,
     });
     
     return {
-      success: true,
+      success: response.data.success !== false,
       conversation_id: response.data.conversation_id || response.data.id || null, // sometimes it's returned as id
       data: response.data,
+      error: response.data.message || response.data.error,
     };
   } catch (error: any) {
     console.error('Error triggering ElevenLabs call:', error.response?.data || error.message);
