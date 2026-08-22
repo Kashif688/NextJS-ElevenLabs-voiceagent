@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Clock, BookOpen, Layers, Calendar, PhoneCall } from "lucide-react";
 import LeadStatus from "./LeadStatus";
 import TriggerCallButton from "./TriggerCallButton";
+import DeleteLeadButton from "../DeleteLeadButton";
 
 export const dynamic = 'force-dynamic';
 
@@ -41,11 +42,14 @@ export default async function LeadDetailsPage({ params }: { params: Promise<{ id
 
   return (
     <div className="max-w-[1300px] mx-auto space-y-6">
-      <div className="mb-2">
+      <div className="mb-2 flex items-center justify-between">
         <Link href="/leads" className="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl text-[0.85rem] font-bold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm bg-white">
           <ArrowLeft size={16} />
           Back to All Leads
         </Link>
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex items-center justify-center p-0.5">
+          <DeleteLeadButton leadId={lead._id.toString()} />
+        </div>
       </div>
 
       {/* Scheduled Follow-Up Alert Banner if requested */}

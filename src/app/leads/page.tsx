@@ -3,6 +3,7 @@ import { getCurrentAgentId } from "@/actions/agent.actions";
 import Link from "next/link";
 import { Plus, PhoneCall, Calendar, Clock, BookOpen, Layers } from "lucide-react";
 import ImportLeadsModal from "@/components/ImportLeadsModal";
+import DeleteLeadButton from "./DeleteLeadButton";
 
 export const dynamic = 'force-dynamic';
 
@@ -147,12 +148,15 @@ export default async function LeadsPage() {
 
                       {/* Actions */}
                       <td className={`px-5 py-4 border-b border-slate-200 ${index === leads.length - 1 ? 'border-none' : ''}`}>
-                        <Link 
-                          href={`/leads/${lead._id}`} 
-                          className="inline-flex items-center justify-center px-3.5 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-50 hover:border-slate-300 transition-colors shadow-sm"
-                        >
-                          View History
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link 
+                            href={`/leads/${lead._id}`} 
+                            className="inline-flex items-center justify-center px-3.5 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-50 hover:border-slate-300 transition-colors shadow-sm"
+                          >
+                            View History
+                          </Link>
+                          <DeleteLeadButton leadId={lead._id} />
+                        </div>
                       </td>
                     </tr>
                   );

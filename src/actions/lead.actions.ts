@@ -237,3 +237,17 @@ export async function updateLeadFollowUpAction(leadId: string, data: {
     return { success: false, error: error.message };
   }
 }
+
+export async function deleteLeadAndHistory(leadId: string) {
+  try {
+    await connectDB();
+    await CallLog.deleteMany({ leadId });
+    await Lead.findByIdAndDelete(leadId);
+    
+    revalidatePath("/leads");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error deleting lead:", error);
+    return { success: false, error: error.message };
+  }
+}
