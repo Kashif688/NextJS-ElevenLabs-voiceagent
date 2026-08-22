@@ -191,7 +191,7 @@ export async function reanalyzeBatchAction(batchId: string, limit?: number, skip
             };
 
             const callbackReqVal = extractVal(dataCollection?.callback_requested);
-            const followUpRequired = callbackReqVal === 'true' || callbackReqVal === 'yes' || callbackReqVal === true || !!extractVal(dataCollection?.preferred_callback_time);
+            const followUpRequired = callbackReqVal === 'true' || callbackReqVal === 'yes' || !!extractVal(dataCollection?.preferred_callback_time);
             const preferredCallbackTime = extractVal(dataCollection?.preferred_callback_time);
             const bookTopic = extractVal(dataCollection?.book_topic_or_title) || extractVal(dataCollection?.book_topic);
             const writingStage = extractVal(dataCollection?.writing_stage);
