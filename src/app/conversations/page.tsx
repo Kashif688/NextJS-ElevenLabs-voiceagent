@@ -153,6 +153,11 @@ export default async function ConversationsPage() {
                               ID: {conv.conversation_id.substring(0, 18)}...
                             </span>
                           )}
+                          {log?.preferredCallbackTime && (
+                            <span className="mt-1 inline-flex items-center gap-1 text-[0.7rem] font-bold text-amber-800 bg-amber-50 border border-amber-200/80 px-1.5 py-0.5 rounded w-fit">
+                              📅 Callback: {log.preferredCallbackTime}
+                            </span>
+                          )}
                         </div>
                       </td>
 

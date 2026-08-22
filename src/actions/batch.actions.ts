@@ -4,6 +4,7 @@ import { getBatchCalls, getBatchCallDetails, submitBatchCall, runConversationAna
 import { getCurrentAgentId, getSelectedPhoneNumber } from "@/actions/agent.actions";
 import connectDB from "@/lib/mongodb";
 import CallLog from "@/models/CallLog";
+import Lead from "@/models/Lead";
 import { revalidatePath } from "next/cache";
 
 export async function fetchBatchCalls() {
@@ -21,6 +22,12 @@ export async function createBatchCallAction(payload: {
   recipients: Array<{
     phoneNumber: string;
     firstName?: string;
+    lastName?: string;
+    email?: string;
+    company?: string;
+    bookTopic?: string;
+    writingStage?: string;
+    context?: string;
   }>;
 }) {
   if (!payload.callName) {
@@ -31,18 +38,69 @@ export async function createBatchCallAction(payload: {
     return { success: false, error: "At least one recipient phone number is required" };
   }
 
+  await connectDB();
+
   const activeAgentId = payload.agentId || await getCurrentAgentId();
   const activePhoneNumberId = await getSelectedPhoneNumber();
 
-  const formattedRecipients = payload.recipients.map((r) => ({
-    phone_number: r.phoneNumber.trim(),
-    conversation_initiation_client_data: {
-      dynamic_variables: {
-        first_name: r.firstName?.trim() || "there",
-      },
-    },
-  }));
+  // 1. Ensure all recipients exist in MongoDB Lead collection & prepare dynamic variables
+  const createdOrUpdatedLeadIds: string[] = [];
+  const formattedRecipients = [];
 
+  for (const r of payload.recipients) {
+    const cleanPhone = r.phoneNumber.trim();
+    const fName = r.firstName?.trim() || "there";
+    const lName = r.lastName?.trim() || "";
+    const ctx = r.context?.trim() || "";
+
+    // Find existing lead or create new lead
+    let lead = await Lead.findOne({ phoneNumber: cleanPhone });
+    if (lead) {
+      // Update batch information and append new context if provided
+      const updatedContext = ctx ? (lead.context ? `${lead.context} | ${ctx}` : ctx) : lead.context;
+      lead.batchName = payload.callName;
+      lead.context = updatedContext;
+      if (r.bookTopic) lead.bookTopic = r.bookTopic;
+      if (r.writingStage) lead.writingStage = r.writingStage;
+      if (r.email && !lead.email) lead.email = r.email;
+      if (r.company && !lead.company) lead.company = r.company;
+      lead.callStatus = "initiating";
+      await lead.save();
+    } else {
+      lead = await Lead.create({
+        firstName: fName,
+        lastName: lName,
+        phoneNumber: cleanPhone,
+        email: r.email?.trim(),
+        company: r.company?.trim(),
+        bookTopic: r.bookTopic?.trim(),
+        writingStage: r.writingStage?.trim(),
+        context: ctx,
+        batchName: payload.callName,
+        source: "batch_import",
+        status: "new",
+        callStatus: "initiating",
+        callType: "auto",
+      });
+    }
+
+    createdOrUpdatedLeadIds.push(lead._id.toString());
+
+    // Prepare ElevenLabs recipient payload with dynamic context
+    formattedRecipients.push({
+      phone_number: cleanPhone,
+      conversation_initiation_client_data: {
+        dynamic_variables: {
+          first_name: fName,
+          context: lead.context || ctx || "",
+          book_topic: lead.bookTopic || r.bookTopic || "",
+          previous_summary: lead.lastCallSummary || "",
+        },
+      },
+    });
+  }
+
+  // 2. Dispatch batch call to ElevenLabs
   const res = await submitBatchCall({
     call_name: payload.callName,
     agent_id: activeAgentId,
@@ -51,7 +109,18 @@ export async function createBatchCallAction(payload: {
   });
 
   if (res.success) {
+    const batchId = res.data?.batch_id || res.data?.id || null;
+    
+    // Update batchId reference on all affected leads
+    if (batchId) {
+      await Lead.updateMany(
+        { _id: { $in: createdOrUpdatedLeadIds } },
+        { $set: { batchId } }
+      );
+    }
+
     revalidatePath("/batches");
+    revalidatePath("/leads");
     revalidatePath("/");
   }
 
@@ -105,11 +174,31 @@ export async function reanalyzeBatchAction(batchId: string, limit?: number, skip
             if (!convDetails) return;
 
             const dataCollection = convDetails.analysis?.data_collection_results;
+            
+            // Extract call outcome
             let outcome = null;
             if (dataCollection?.call_outcome) {
               const outcomeObj = dataCollection.call_outcome;
               outcome = typeof outcomeObj === 'string' ? outcomeObj : (outcomeObj.value ?? null);
             }
+
+            // Extract structured follow-up & book context
+            const extractVal = (field: any) => {
+              if (!field) return null;
+              if (typeof field === 'string') return field.trim();
+              if (field.value !== undefined && field.value !== null) return String(field.value).trim();
+              return null;
+            };
+
+            const callbackReqVal = extractVal(dataCollection?.callback_requested);
+            const followUpRequired = callbackReqVal === 'true' || callbackReqVal === 'yes' || callbackReqVal === true || !!extractVal(dataCollection?.preferred_callback_time);
+            const preferredCallbackTime = extractVal(dataCollection?.preferred_callback_time);
+            const bookTopic = extractVal(dataCollection?.book_topic_or_title) || extractVal(dataCollection?.book_topic);
+            const writingStage = extractVal(dataCollection?.writing_stage);
+            const servicesDiscussed = extractVal(dataCollection?.services_discussed);
+            const followUpContext = extractVal(dataCollection?.follow_up_context);
+            const confirmedEmail = extractVal(dataCollection?.confirmed_email);
+            const confirmedPhone = extractVal(dataCollection?.confirmed_phone);
 
             const summary = convDetails.analysis?.transcript_summary || convDetails.transcript_summary || null;
             const durationSecs = convDetails.metadata?.call_duration_secs || 0;
@@ -134,21 +223,72 @@ export async function reanalyzeBatchAction(batchId: string, limit?: number, skip
               }
             }
 
-            // 3. Upsert into CallLog
+            // 3. Find or Associate with Lead
+            const recipientPhone = convDetails.metadata?.phone_call?.to_number || 
+                                   convDetails.metadata?.to_number || 
+                                   convDetails.metadata?.phone_number || null;
+
+            let lead = null;
+            if (recipientPhone) {
+              lead = await Lead.findOne({ phoneNumber: recipientPhone });
+            }
+
+            // 4. Upsert into CallLog
+            const callLogData: any = {
+              elevenlabsConversationId: convId,
+              batchId: batchId,
+              callOutcome: outcome,
+              callSummary: summary,
+              callDurationSecs: durationSecs,
+              callStatus: status,
+              callAnalysis: convDetails.analysis || null,
+              followUpRequired,
+              preferredCallbackTime: preferredCallbackTime || null,
+              bookTopic: bookTopic || null,
+              writingStage: writingStage || null,
+              servicesDiscussed: servicesDiscussed || null,
+              followUpContext: followUpContext || null,
+              confirmedEmail: confirmedEmail || null,
+              confirmedPhone: confirmedPhone || null,
+            };
+
+            if (lead) {
+              callLogData.leadId = lead._id;
+            }
+
             await CallLog.updateOne(
               { elevenlabsConversationId: convId },
-              {
-                $set: {
-                  elevenlabsConversationId: convId,
-                  callOutcome: outcome,
-                  callSummary: summary,
-                  callDurationSecs: durationSecs,
-                  callStatus: status,
-                  callAnalysis: convDetails.analysis || null,
-                },
-              },
+              { $set: callLogData },
               { upsert: true }
             );
+
+            // 5. Update Lead with latest conversation context and follow-up data
+            if (lead) {
+              const leadUpdates: any = {
+                callStatus: status === "completed" || status === "done" ? "completed" : status,
+                lastCallOutcome: outcome,
+                lastCallSummary: summary,
+                lastConversationId: convId,
+              };
+
+              if (followUpContext) {
+                leadUpdates.context = followUpContext;
+                leadUpdates.followUpNotes = followUpContext;
+              } else if (summary && !lead.context) {
+                leadUpdates.context = summary;
+              }
+
+              if (preferredCallbackTime) {
+                leadUpdates.preferredCallbackTime = preferredCallbackTime;
+                leadUpdates.followUpStatus = "callback_requested";
+              }
+
+              if (bookTopic) leadUpdates.bookTopic = bookTopic;
+              if (writingStage) leadUpdates.writingStage = writingStage;
+              if (confirmedEmail && !lead.email) leadUpdates.email = confirmedEmail;
+
+              await Lead.updateOne({ _id: lead._id }, { $set: leadUpdates });
+            }
 
             processedCount++;
           } catch (err: any) {
@@ -161,6 +301,7 @@ export async function reanalyzeBatchAction(batchId: string, limit?: number, skip
     revalidatePath(`/batches/${batchId}`);
     revalidatePath("/batches");
     revalidatePath("/conversations");
+    revalidatePath("/leads");
 
     return {
       success: true,

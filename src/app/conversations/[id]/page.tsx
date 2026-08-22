@@ -1,6 +1,6 @@
 import { getConversationDetails, getAgentDetails } from "@/lib/elevenlabs";
 import Link from "next/link";
-import { ArrowLeft, User, Bot } from "lucide-react";
+import { ArrowLeft, User, Bot, Clock, BookOpen, Wrench, Mail, Phone, Calendar } from "lucide-react";
 import { notFound } from "next/navigation";
 
 export const dynamic = 'force-dynamic';
@@ -55,9 +55,29 @@ export default async function ConversationDetailsPage({ params }: { params: Prom
   const duration = conversation.call_duration_secs;
   const startTime = conversation.start_time_unix_secs;
 
+  const dataCollection = conversation.analysis?.data_collection_results || {};
+  const extractVal = (obj: any) => {
+    if (!obj) return null;
+    if (typeof obj === 'string') return obj.trim();
+    if (obj.value !== undefined && obj.value !== null) return String(obj.value).trim();
+    return null;
+  };
+
+  const outcomeVal = extractVal(dataCollection.call_outcome);
+  const outcomeRationale = dataCollection.call_outcome?.rationale;
+  const preferredCallback = extractVal(dataCollection.preferred_callback_time);
+  const followUpContext = extractVal(dataCollection.follow_up_context);
+  const bookTopic = extractVal(dataCollection.book_topic_or_title) || extractVal(dataCollection.book_topic);
+  const writingStage = extractVal(dataCollection.writing_stage);
+  const servicesDiscussed = extractVal(dataCollection.services_discussed);
+  const confirmedEmail = extractVal(dataCollection.confirmed_email);
+  const confirmedPhone = extractVal(dataCollection.confirmed_phone);
+
+  const hasFollowUpData = !!preferredCallback || !!followUpContext || !!bookTopic || !!writingStage;
+
   return (
-    <div className="max-w-[1300px] mx-auto pt-4 pb-12">
-      <div className="mb-6">
+    <div className="max-w-[1300px] mx-auto pt-4 pb-12 space-y-6">
+      <div className="flex items-center justify-between">
         <Link href="/conversations" className="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-xl text-[0.85rem] font-bold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm bg-white">
           <ArrowLeft size={16} />
           Back to All Conversations
@@ -65,67 +85,128 @@ export default async function ConversationDetailsPage({ params }: { params: Prom
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
-        {/* Left Column: Call Metadata */}
-        <div className="w-full lg:w-[380px] bg-white rounded-2xl shadow-sm border border-slate-200 p-8 shrink-0 sticky top-[100px]">
-          <h3 className="text-xl font-extrabold text-slate-900 mb-6 pb-4 border-b border-slate-100">Call Metadata</h3>
+        {/* Left Column: Call Metadata & Extracted Follow-Up Context */}
+        <div className="w-full lg:w-[400px] bg-white rounded-2xl shadow-sm border border-slate-200 p-8 shrink-0 space-y-6">
+          <h3 className="text-xl font-extrabold text-slate-900 pb-4 border-b border-slate-100">Call Metadata</h3>
           
-          <div className="space-y-6">
+          <div className="space-y-5">
             <div>
-              <p className="text-[0.85rem] font-bold text-slate-700 mb-1.5">Conversation ID</p>
-              <span className="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-[0.75rem] font-mono break-all inline-block w-full">
+              <p className="text-[0.8rem] font-bold text-slate-500 mb-1">Conversation ID</p>
+              <span className="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-[0.72rem] font-mono break-all inline-block w-full">
                 {conversationId}
               </span>
             </div>
 
-            <div>
-              <p className="text-[0.85rem] font-bold text-slate-700 mb-1.5">Status</p>
-              <p className="text-[0.95rem] font-medium text-slate-900 capitalize">{status}</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-[0.8rem] font-bold text-slate-500 mb-1">Status</p>
+                <p className="text-[0.9rem] font-bold text-slate-900 capitalize">{status}</p>
+              </div>
+              <div>
+                <p className="text-[0.8rem] font-bold text-slate-500 mb-1">Duration</p>
+                <p className="text-[0.9rem] font-bold text-slate-900">{formatDuration(duration)}</p>
+              </div>
             </div>
 
             <div>
-              <p className="text-[0.85rem] font-bold text-slate-700 mb-1.5">Agent Name</p>
-              <p className="text-[0.95rem] font-medium text-slate-900">{agentName}</p>
+              <p className="text-[0.8rem] font-bold text-slate-500 mb-1">Agent Name</p>
+              <p className="text-[0.9rem] font-semibold text-slate-900">{agentName}</p>
             </div>
 
-            <div>
-              <p className="text-[0.85rem] font-bold text-slate-700 mb-1.5">Call Duration</p>
-              <p className="text-[0.95rem] font-medium text-slate-900">{formatDuration(duration)}</p>
+            <div className="pb-5 border-b border-slate-100">
+              <p className="text-[0.8rem] font-bold text-slate-500 mb-1">Start Time</p>
+              <p className="text-[0.9rem] font-medium text-slate-700">{formatDate(startTime)}</p>
             </div>
 
-            <div className="pb-6 border-b border-slate-100">
-              <p className="text-[0.85rem] font-bold text-slate-700 mb-1.5">Start Time</p>
-              <p className="text-[0.95rem] font-medium text-slate-900">{formatDate(startTime)}</p>
+            {/* Call Outcome */}
+            <div className="pb-5 border-b border-slate-100">
+              <p className="text-[0.8rem] font-bold text-slate-700 mb-2">Evaluated Outcome</p>
+              {outcomeVal ? (
+                <div className="space-y-1.5">
+                  <span className="px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200/60 rounded-lg text-xs font-mono font-extrabold inline-block">
+                    {outcomeVal}
+                  </span>
+                  {outcomeRationale && (
+                    <p className="text-xs text-slate-500 italic leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-slate-100 mt-1">
+                      "{outcomeRationale}"
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <span className="text-xs text-slate-400 italic">No outcome evaluated</span>
+              )}
             </div>
 
-            {/* Data Collection Section */}
-            <div className="pb-6 border-b border-slate-100">
-              <p className="text-[0.85rem] font-bold text-slate-700 mb-2">Data Collection (call_outcome)</p>
-              {(() => {
-                const outcomeObj = conversation.analysis?.data_collection_results?.call_outcome;
-                const outcomeVal = typeof outcomeObj === 'string' ? outcomeObj : outcomeObj?.value;
-                const rationale = outcomeObj?.rationale;
+            {/* Extracted Follow-Up & Book Context Card */}
+            {hasFollowUpData && (
+              <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-xl space-y-3">
+                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-800">
+                  <Clock size={15} className="text-amber-600" />
+                  Follow-Up & Author Context
+                </div>
 
-                if (!outcomeVal) {
-                  return <span className="text-xs text-slate-400 italic">No outcome recorded</span>;
-                }
-
-                return (
-                  <div className="space-y-1.5">
-                    <span className="px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200/60 rounded-lg text-xs font-mono font-extrabold inline-block">
-                      {outcomeVal}
+                {preferredCallback && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="font-bold text-amber-900">📅 Preferred Callback:</span>
+                    <span className="font-mono font-extrabold bg-amber-100 px-2 py-0.5 rounded text-amber-900">
+                      {preferredCallback}
                     </span>
-                    {rationale && (
-                      <p className="text-xs text-slate-500 italic leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-slate-100 mt-1">
-                        "{rationale}"
+                  </div>
+                )}
+
+                {bookTopic && (
+                  <div className="text-xs">
+                    <span className="font-bold text-slate-700">📖 Book Idea:</span>
+                    <p className="text-slate-600 font-medium mt-0.5">{bookTopic}</p>
+                  </div>
+                )}
+
+                {writingStage && (
+                  <div className="text-xs">
+                    <span className="font-bold text-slate-700">✍️ Writing Stage:</span>
+                    <span className="ml-1.5 px-2 py-0.5 bg-white border border-amber-200 rounded font-semibold text-slate-800 capitalize">
+                      {writingStage.replace(/_/g, " ")}
+                    </span>
+                  </div>
+                )}
+
+                {servicesDiscussed && (
+                  <div className="text-xs">
+                    <span className="font-bold text-slate-700">🛠️ Services Discussed:</span>
+                    <p className="text-slate-600 font-medium mt-0.5">{servicesDiscussed}</p>
+                  </div>
+                )}
+
+                {followUpContext && (
+                  <div className="pt-2 border-t border-amber-200/80 text-xs">
+                    <span className="font-bold text-slate-800">📝 Next Call Briefing:</span>
+                    <p className="text-slate-700 leading-relaxed font-medium mt-1 bg-white/80 p-2.5 rounded-lg border border-amber-100">
+                      {followUpContext}
+                    </p>
+                  </div>
+                )}
+
+                {(confirmedEmail || confirmedPhone) && (
+                  <div className="pt-2 border-t border-amber-200/80 text-xs space-y-1">
+                    {confirmedEmail && (
+                      <p className="flex items-center gap-1 text-slate-600">
+                        <Mail size={12} className="text-amber-700" />
+                        <span className="font-semibold">{confirmedEmail}</span>
+                      </p>
+                    )}
+                    {confirmedPhone && (
+                      <p className="flex items-center gap-1 text-slate-600">
+                        <Phone size={12} className="text-amber-700" />
+                        <span className="font-mono font-semibold">{confirmedPhone}</span>
                       </p>
                     )}
                   </div>
-                );
-              })()}
-            </div>
+                )}
+              </div>
+            )}
 
             <div>
-              <p className="text-[0.85rem] font-bold text-slate-700 mb-3">Call Audio Recording</p>
+              <p className="text-[0.8rem] font-bold text-slate-700 mb-2">Call Audio Recording</p>
               <audio 
                 controls 
                 className="w-full h-[40px] rounded-full" 
@@ -160,13 +241,13 @@ export default async function ConversationDetailsPage({ params }: { params: Prom
                       {isAgent ? (
                         <>
                           <Bot size={14} className="text-indigo-600" />
-                          <span className="text-[0.75rem] font-bold text-slate-700">3knot AI Voice Agent</span>
+                          <span className="text-[0.75rem] font-bold text-slate-700">Emma (American Books Wizard)</span>
                           <span className="text-[0.75rem] font-semibold text-slate-400">• {timeStr}</span>
                         </>
                       ) : (
                         <>
                           <User size={14} className="text-slate-600" />
-                          <span className="text-[0.75rem] font-bold text-slate-700">Lead / User</span>
+                          <span className="text-[0.75rem] font-bold text-slate-700">Author / Lead</span>
                           <span className="text-[0.75rem] font-semibold text-slate-400">• {timeStr}</span>
                         </>
                       )}

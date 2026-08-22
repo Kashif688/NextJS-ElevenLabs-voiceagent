@@ -390,9 +390,20 @@ export default function BatchConversationsList({
                     {/* one_line_summary */}
                     <td className={`px-5 py-4 border-b border-slate-200 max-w-[280px] ${isLast ? 'border-none' : ''}`}>
                       {oneLineSummary ? (
-                        <p className="text-xs text-slate-700 font-medium line-clamp-2 leading-relaxed">
-                          {oneLineSummary}
-                        </p>
+                        <div>
+                          <p className="text-xs text-slate-700 font-medium line-clamp-2 leading-relaxed">
+                            {oneLineSummary}
+                          </p>
+                          {log?.preferredCallbackTime && (
+                            <div className="mt-1 inline-flex items-center gap-1 text-[0.7rem] font-bold text-amber-800 bg-amber-50 border border-amber-200/80 px-1.5 py-0.5 rounded">
+                              📅 Callback: {log.preferredCallbackTime}
+                            </div>
+                          )}
+                        </div>
+                      ) : log?.preferredCallbackTime ? (
+                        <div className="inline-flex items-center gap-1 text-[0.7rem] font-bold text-amber-800 bg-amber-50 border border-amber-200/80 px-1.5 py-0.5 rounded">
+                          📅 Callback: {log.preferredCallbackTime}
+                        </div>
                       ) : (
                         <span className="text-xs text-slate-400 italic">No summary</span>
                       )}

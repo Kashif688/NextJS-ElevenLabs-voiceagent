@@ -7,6 +7,11 @@ export interface ILead extends Document {
   email?: string;
   company?: string;
   context?: string;
+  bookTopic?: string;
+  writingStage?: string;
+  batchId?: string;
+  batchName?: string;
+  source?: string;
   callType: 'manual' | 'auto';
   callDelayMinutes?: number;
   status: string;
@@ -15,6 +20,12 @@ export interface ILead extends Document {
   callSummary?: string;
   recordingUrl?: string;
   callErrorReason?: string;
+  preferredCallbackTime?: string;
+  followUpStatus?: string;
+  lastCallOutcome?: string;
+  lastCallSummary?: string;
+  lastConversationId?: string;
+  followUpNotes?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -22,11 +33,16 @@ export interface ILead extends Document {
 const LeadSchema: Schema = new Schema(
   {
     firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
+    lastName: { type: String, default: '' },
     phoneNumber: { type: String, required: true },
     email: { type: String },
     company: { type: String },
     context: { type: String },
+    bookTopic: { type: String },
+    writingStage: { type: String },
+    batchId: { type: String },
+    batchName: { type: String },
+    source: { type: String, default: 'manual' },
     callType: { type: String, enum: ['manual', 'auto'], default: 'manual' },
     callDelayMinutes: { type: Number },
     status: { type: String, default: 'new' },
@@ -35,6 +51,12 @@ const LeadSchema: Schema = new Schema(
     callSummary: { type: String },
     recordingUrl: { type: String },
     callErrorReason: { type: String },
+    preferredCallbackTime: { type: String },
+    followUpStatus: { type: String, default: 'none' },
+    lastCallOutcome: { type: String },
+    lastCallSummary: { type: String },
+    lastConversationId: { type: String },
+    followUpNotes: { type: String },
   },
   { timestamps: true }
 );
