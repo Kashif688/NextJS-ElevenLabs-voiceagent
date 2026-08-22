@@ -94,7 +94,7 @@ export async function createBatchCallAction(payload: {
           first_name: fName,
           context: lead.context || ctx || "",
           book_topic: lead.bookTopic || r.bookTopic || "",
-          previous_summary: lead.lastCallSummary || "",
+          previous_summary: lead.lastCallSummary || "no summary",
         },
       },
     });

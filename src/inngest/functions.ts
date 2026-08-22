@@ -45,7 +45,7 @@ export const initiateOutboundCall = inngest.createFunction(
         company: lead.company || "",
         context: lead.context || "",
         book_topic: lead.bookTopic || "",
-        previous_summary: lead.lastCallSummary || lead.callSummary || "",
+        previous_summary: lead.lastCallSummary || lead.callSummary || "no summary",
       };
 
       const response = await triggerOutboundCall(lead.phoneNumber, dynamicVariables, agentId, agentPhoneNumberId);

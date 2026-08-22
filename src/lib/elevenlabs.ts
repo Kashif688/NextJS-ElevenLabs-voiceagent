@@ -36,7 +36,9 @@ export async function triggerOutboundCall(
       agent_id: agentId || AGENT_ID,
       agent_phone_number_id: targetPhoneId,
       to_number: phoneNumber,
-      dynamic_variables: dynamicVariables,
+      conversation_initiation_client_data: {
+        dynamic_variables: dynamicVariables,
+      },
     });
     
     return {
