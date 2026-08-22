@@ -88,6 +88,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     };
 
     let outcome = extractVal(dataCollection?.call_outcome);
+    const lastCompletedStage = extractVal(dataCollection?.last_completed_stage);
+    const oneLineSummary = extractVal(dataCollection?.one_line_summary);
     const callbackReq = extractVal(dataCollection?.callback_requested);
     const preferredCallbackTime = extractVal(dataCollection?.preferred_callback_time);
     const bookTopic = extractVal(dataCollection?.book_topic_or_title) || extractVal(dataCollection?.book_topic);
@@ -117,8 +119,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       callSummary: summaryText,
       callErrorReason: errorReason,
       lastCallOutcome: outcome,
-      lastCallSummary: summaryText,
+      lastCallSummary: oneLineSummary || summaryText,
       lastConversationId: convId,
+      lastCompletedStage: lastCompletedStage || "no_interaction",
     };
 
     if (followUpContext) {
@@ -144,9 +147,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         $set: {
           callStatus: finalStatus,
           callOutcome: outcome,
-          callSummary: summaryText,
+          callSummary: oneLineSummary || summaryText,
           callDurationSecs: durationSecs,
           callErrorReason: errorReason,
+          lastCompletedStage: lastCompletedStage || "no_interaction",
           followUpRequired,
           preferredCallbackTime: preferredCallbackTime || null,
           bookTopic: bookTopic || null,

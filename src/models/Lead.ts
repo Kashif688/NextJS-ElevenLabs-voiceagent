@@ -25,6 +25,7 @@ export interface ILead extends Document {
   lastCallOutcome?: string;
   lastCallSummary?: string;
   lastConversationId?: string;
+  lastCompletedStage?: string;
   followUpNotes?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -53,9 +54,10 @@ const LeadSchema: Schema = new Schema(
     callErrorReason: { type: String },
     preferredCallbackTime: { type: String },
     followUpStatus: { type: String, default: 'none' },
-    lastCallOutcome: { type: String },
+    lastCallOutcome: { type: String, default: 'no_interaction' },
     lastCallSummary: { type: String },
     lastConversationId: { type: String },
+    lastCompletedStage: { type: String, default: 'no_interaction' },
     followUpNotes: { type: String },
   },
   { timestamps: true }

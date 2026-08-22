@@ -10,6 +10,7 @@ export interface ICallLog extends Document {
   recordingUrl?: string;
   callErrorReason?: string;
   callOutcome?: string;
+  lastCompletedStage?: string;
   followUpRequired?: boolean;
   preferredCallbackTime?: string;
   bookTopic?: string;
@@ -35,6 +36,7 @@ const CallLogSchema: Schema = new Schema(
     recordingUrl: { type: String },
     callErrorReason: { type: String },
     callOutcome: { type: String },
+    lastCompletedStage: { type: String },
     followUpRequired: { type: Boolean, default: false },
     preferredCallbackTime: { type: String },
     bookTopic: { type: String },

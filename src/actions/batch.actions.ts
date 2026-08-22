@@ -94,7 +94,10 @@ export async function createBatchCallAction(payload: {
           first_name: fName,
           context: lead.context || ctx || "",
           book_topic: lead.bookTopic || r.bookTopic || "",
-          previous_summary: lead.lastCallSummary || "no summary",
+          last_completed_stage: lead.lastCompletedStage || "no_interaction",
+          last_outcome: lead.lastCallOutcome || "no_interaction",
+          last_summary: lead.lastCallSummary || lead.callSummary || "no summary",
+          previous_summary: lead.lastCallSummary || lead.callSummary || "no summary", // Keeping for backwards compatibility
         },
       },
     });
