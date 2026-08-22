@@ -6,47 +6,46 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     
-    // ElevenLabs passes tool parameters in the body. 
-    // We expect the agent to pass 'phone_number'.
-    const { phone_number } = body;
+    // ElevenLabs passes caller_id in the Conversation Initiation Webhook
+    // If testing manually, we also allow phone_number as a fallback
+    const phone_number = body.caller_id || body.phone_number;
 
     if (!phone_number) {
-      return NextResponse.json({ 
-        error: "Missing phone_number parameter." 
-      }, { status: 400 });
+      // If no caller_id is provided, return empty dynamic variables
+      return NextResponse.json({ dynamic_variables: { found: "false" } });
     }
 
     // Connect to the database
     await connectDB();
 
-    // Clean the phone number (remove spaces, etc. just in case)
+    // Clean the phone number
     const cleanPhone = phone_number.trim();
 
     // Look up the lead in the database
     const lead = await Lead.findOne({ phoneNumber: cleanPhone });
 
     if (!lead) {
-      // Return a structured response telling Emma this is a brand new caller
+      // Return false in dynamic variables for a brand new caller
       return NextResponse.json({
-        found: false,
-        message: "No existing CRM record found for this phone number. Treat as a new inbound caller."
+        dynamic_variables: {
+          found: "false"
+        }
       });
     }
 
-    // Map the database fields to the structured JSON that Emma expects
-    const responseData = {
-      found: true,
+    // Map the database fields to the dynamic variables ElevenLabs expects
+    const dynamicVariables = {
+      found: "true",
       author_name: lead.firstName || "Unknown",
       book_topic: lead.bookTopic || "Unknown",
       writing_stage: lead.writingStage || "Unknown",
-      current_stage: lead.lastCompletedStage || "no_interaction",
-      detailed_previous_summary: lead.callSummary || lead.lastCallSummary || "No previous summary available.",
-      has_existing_project: !!lead.bookTopic || !!lead.writingStage,
+      last_completed_stage: lead.lastCompletedStage || "no_interaction",
+      last_summary: lead.callSummary || lead.lastCallSummary || "No previous summary available.",
       company: lead.company || "",
       context: lead.context || ""
     };
 
-    return NextResponse.json(responseData);
+    return NextResponse.json({ dynamic_variables: dynamicVariables });
 
   } catch (error: any) {
     console.error("Error in lookup-caller API:", error);
