@@ -13,12 +13,17 @@ export default function TriggerCallButton({ leadId, currentStatus }: { leadId: s
   const handleTriggerCall = async () => {
     try {
       setIsTriggering(true);
-      await triggerManualCall(leadId);
+      const result = await triggerManualCall(leadId);
+      
+      if (result && !result.success) {
+        throw new Error(result.error || "Failed to trigger call");
+      }
+      
       toast.success("Call initiated! The ElevenLabs agent is dialing the lead now.");
       router.refresh();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error triggering call", error);
-      toast.error("Failed to initiate the call. Please try again.");
+      toast.error(error.message || "Failed to initiate the call. Please try again.");
     } finally {
       setIsTriggering(false);
     }
